@@ -1,28 +1,20 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"os"
+	"log"
 
-	"github.com/jackc/pgx/v5"
+	"atcoder-recomend/internal/client"
 )
 
 func main() {
-	url := "postgres://postgres:postgres@localhost:5432/postgres"
-	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, url)
+	submissions, err := client.FetchSubmissions("uwaaaaaa", 0)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("取得失敗: %v", err)
 	}
-	defer conn.Close(ctx)
 
-	var result int
-	err = conn.QueryRow(ctx, "select 1").Scan(&result)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		os.Exit(1)
+	fmt.Printf("件数: %d\n", len(submissions))
+	if len(submissions) > 0 {
+		fmt.Printf("最初の1件: %+v\n", submissions[0])
 	}
-	fmt.Println("接続成功、結果:", result)
 }
