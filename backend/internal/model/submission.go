@@ -1,11 +1,14 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Submission struct {
-	ID          int
-	ProblemID   string
-	Result      string
-	code        string
-	SubmittedAt time.Time
+	ID           int
+	SubmissionID int64
+	ProblemID    string
+	Result       string
+	Code         *string
+	SubmittedAt  time.Time
 }

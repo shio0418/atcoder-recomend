@@ -5,4 +5,5 @@ type Problem struct {
 	ProblemID string 
 	Title string 
 	Difficulty *int
+	Tags []string
 }
