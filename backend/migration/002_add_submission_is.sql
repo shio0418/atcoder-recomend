@@ -1,1 +1,1 @@
-ALTER TABLE submissions ADD COLUMN submission_id BIGINT UNIQUE;
+ALTER TABLE submissions ADD COLUMN submission_id BIGINT NOT NULL UNIQUE;
