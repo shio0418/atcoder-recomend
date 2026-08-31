@@ -3,26 +3,39 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
+	"log"
 
-	"github.com/jackc/pgx/v5"
+	"atcoder-recomend/internal/client"
+	"atcoder-recomend/internal/repository"
 )
 
 func main() {
-	url := "postgres://postgres:postgres@localhost:5432/postgres"
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, url)
+	conn, err := repository.Connect(ctx)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("DB接続失敗: %v", err)
 	}
 	defer conn.Close(ctx)
 
-	var result int
-	err = conn.QueryRow(ctx, "select 1").Scan(&result)
+	problems, err := client.FetchProblems()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("問題取得失敗: %v", err)
 	}
-	fmt.Println("接続成功、結果:", result)
+	for _, p := range problems {
+		if err := repository.InsertProblem(ctx, conn, p); err != nil {
+			log.Fatalf("問題保存失敗 (%s): %v", p.ProblemID, err)
+		}
+	}
+	fmt.Printf("問題 %d 件を保存しました\n", len(problems))
+
+	submissions, err := client.FetchSubmissions("uwaaaaaa", 0)
+	if err != nil {
+		log.Fatalf("提出取得失敗: %v", err)
+	}
+	for _, s := range submissions {
+		if err := repository.InsertSubmission(ctx, conn, s); err != nil {
+			log.Fatalf("提出保存失敗 (submission_id=%d): %v", s.SubmissionID, err)
+		}
+	}
+	fmt.Printf("提出 %d 件を保存しました\n", len(submissions))
 }

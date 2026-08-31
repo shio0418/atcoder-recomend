@@ -8,6 +8,7 @@ CREATE TABLE problems(
 
 CREATE TABLE submissions(
     id SERIAL PRIMARY KEY,
+    submission_id BIGINT NOT NULL UNIQUE,
     problem_id TEXT NOT NULL REFERENCES problems(problem_id),
     result TEXT NOT NULL,
     code TEXT,
