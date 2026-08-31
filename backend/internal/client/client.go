@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
-func FetchSubmissions(user string, fromSecond int64) ([]SubmissionResponse, error) {
+func FetchSubmissions(user string, fromSecond int64) ([]model.Submission, error) {
 	base, err := url.Parse("https://kenkoooo.com/atcoder/atcoder-api/v3/user/submissions")
 	if err != nil {
 		return nil, err
@@ -32,7 +33,20 @@ func FetchSubmissions(user string, fromSecond int64) ([]SubmissionResponse, erro
 		return nil, err
 	}
 
-	return submissions, nil
+	result := make([]model.Submission, 0, len(submissions))
+	for _, s := range submissions {
+		result = append(result, s.toModel())
+	}
+	return result, nil
+}
+
+func (s SubmissionResponse) toModel() model.Submission {
+	return model.Submission{
+		SubmissionID: s.ID,
+		ProblemID:    s.ProblemID,
+		Result:       s.Result,
+		SubmittedAt:  time.Unix(s.EpochSecond, 0),
+	}
 }
 
 func FetchProblems() ([]model.Problem, error) {

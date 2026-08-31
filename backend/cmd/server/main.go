@@ -1,20 +1,41 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
 	"atcoder-recomend/internal/client"
+	"atcoder-recomend/internal/repository"
 )
 
 func main() {
+	ctx := context.Background()
+	conn, err := repository.Connect(ctx)
+	if err != nil {
+		log.Fatalf("DB接続失敗: %v", err)
+	}
+	defer conn.Close(ctx)
+
+	problems, err := client.FetchProblems()
+	if err != nil {
+		log.Fatalf("問題取得失敗: %v", err)
+	}
+	for _, p := range problems {
+		if err := repository.InsertProblem(ctx, conn, p); err != nil {
+			log.Fatalf("問題保存失敗 (%s): %v", p.ProblemID, err)
+		}
+	}
+	fmt.Printf("問題 %d 件を保存しました\n", len(problems))
+
 	submissions, err := client.FetchSubmissions("uwaaaaaa", 0)
 	if err != nil {
-		log.Fatalf("取得失敗: %v", err)
+		log.Fatalf("提出取得失敗: %v", err)
 	}
-
-	fmt.Printf("件数: %d\n", len(submissions))
-	if len(submissions) > 0 {
-		fmt.Printf("最初の1件: %+v\n", submissions[0])
+	for _, s := range submissions {
+		if err := repository.InsertSubmission(ctx, conn, s); err != nil {
+			log.Fatalf("提出保存失敗 (submission_id=%d): %v", s.SubmissionID, err)
+		}
 	}
+	fmt.Printf("提出 %d 件を保存しました\n", len(submissions))
 }
