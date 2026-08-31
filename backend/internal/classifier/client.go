@@ -37,7 +37,7 @@ func ClassifyBatch(ctx context.Context, problems []model.Problem) ([]Classificat
 		},
 	}
 
-	resp, err := client.Models.GenerateContent(ctx, "gemini-2.5-flash", genai.Text(prompt), config)
+	resp, err := client.Models.GenerateContent(ctx, "gemini-3.6-flash", genai.Text(prompt), config)
 	if err != nil {
 		return nil, err
 	}
