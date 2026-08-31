@@ -7,9 +7,14 @@ import (
 
 	"atcoder-recomend/internal/client"
 	"atcoder-recomend/internal/repository"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf(".env読み込み失敗: %v", err)
+	}
 	ctx := context.Background()
 	conn, err := repository.Connect(ctx)
 	if err != nil {
