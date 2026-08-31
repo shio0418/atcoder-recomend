@@ -1,9 +1,9 @@
 package model
 
 type Problem struct {
-	ID        int
-	ProblemID string 
-	Title string 
+	ID         int
+	ProblemID  string
+	Title      string
 	Difficulty *int
-	Tags []string
+	Tags       []string
 }
