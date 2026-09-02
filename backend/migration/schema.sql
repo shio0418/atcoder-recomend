@@ -3,7 +3,9 @@ CREATE TABLE problems(
     problem_id TEXT NOT NULL UNIQUE,
     title TEXT NOT NULL,
     difficulty INTEGER,
-    tags TEXT[]
+    tags TEXT[],
+    contest_id TEXT,
+    has_editorial BOOLEAN
 );
 
 CREATE TABLE submissions(

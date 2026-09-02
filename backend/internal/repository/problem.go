@@ -9,17 +9,17 @@ import (
 
 func InsertProblem(ctx context.Context, conn *pgx.Conn, p model.Problem) error {
 	_, err := conn.Exec(ctx,
-		`INSERT INTO problems (problem_id, title, difficulty, tags)
-		VALUES ($1, $2, $3, $4)
+		`INSERT INTO problems (problem_id, title, difficulty, tags, contest_id)
+		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (problem_id) DO NOTHING`,
-		p.ProblemID, p.Title, p.Difficulty, p.Tags,
+		p.ProblemID, p.Title, p.Difficulty, p.Tags, p.ContestID,
 	)
 	return err
 }
 
 func ListUntaggedProblems(ctx context.Context, conn *pgx.Conn, limit int) ([]model.Problem, error) {
 	rows, err := conn.Query(ctx,
-		`SELECT problem_id, title, difficulty FROM problems WHERE tags IS NULL LIMIT $1`,
+		`SELECT problem_id, title, difficulty, contest_id FROM problems WHERE tags IS NULL LIMIT $1`,
 		limit,
 	)
 	if err != nil {
