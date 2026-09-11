@@ -5,7 +5,9 @@ CREATE TABLE problems(
     difficulty INTEGER,
     tags TEXT[],
     contest_id TEXT,
-    has_editorial BOOLEAN
+    has_editorial BOOLEAN,
+    statement TEXT,
+    editorial_text TEXT
 );
 
 CREATE TABLE submissions(

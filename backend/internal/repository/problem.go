@@ -36,3 +36,11 @@ func UpdateProblemTags(ctx context.Context, conn *pgx.Conn, problemID string, ta
 	return err
 }
 
+func UpdateProblemScrapedContent(ctx context.Context, conn *pgx.Conn, problemID string, statement string, editorialText *string, hasEditorial bool) error {
+	_, err := conn.Exec(ctx,
+		`UPDATE problems SET statement = $1, editorial_text = $2, has_editorial = $3 WHERE problem_id = $4`,
+		statement, editorialText, hasEditorial, problemID,
+	)
+	return err
+}
+
