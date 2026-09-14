@@ -11,7 +11,7 @@ func InsertProblem(ctx context.Context, conn *pgx.Conn, p model.Problem) error {
 	_, err := conn.Exec(ctx,
 		`INSERT INTO problems (problem_id, title, difficulty, tags, contest_id)
 		VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (problem_id) DO NOTHING`,
+		ON CONFLICT (problem_id) DO UPDATE SET contest_id = EXCLUDED.contest_id`,
 		p.ProblemID, p.Title, p.Difficulty, p.Tags, p.ContestID,
 	)
 	return err
