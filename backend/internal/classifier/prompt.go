@@ -35,7 +35,7 @@ func BuildPrompt(problems []model.Problem) string {
 	var sb strings.Builder
 
 	sb.WriteString("あなたは競技プログラミングの問題分類器です。\n")
-	sb.WriteString("以下の各問題タイトルについて、タグ候補の中から最も当てはまるものを最大5個選んでください。\n")
+	sb.WriteString("以下の各問題（タイトル・問題文・あれば解説）について、タグ候補の中から最も当てはまるものを最大5個選んでください。\n")
 	sb.WriteString("タグ候補にないタグを新しく作らないでください。当てはまるものがなければ空配列にしてください。\n\n")
 
 	sb.WriteString("タグ候補: " + strings.Join(TagCandidates, ", ") + "\n\n")
@@ -43,6 +43,12 @@ func BuildPrompt(problems []model.Problem) string {
 	sb.WriteString("問題一覧:\n")
 	for _, p := range problems {
 		sb.WriteString(fmt.Sprintf("- problem_id: %s, title: %s\n", p.ProblemID, p.Title))
+		if p.Statement != nil && *p.Statement != "" {
+			sb.WriteString(fmt.Sprintf("  問題文: %s\n", *p.Statement))
+		}
+		if p.EditorialText != nil && *p.EditorialText != "" {
+			sb.WriteString(fmt.Sprintf("  解説: %s\n", *p.EditorialText))
+		}
 	}
 
 	sb.WriteString("\n出力形式（この形式のJSON配列のみを出力し、説明文やコードブロック記号は含めないこと）:\n")

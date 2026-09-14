@@ -92,5 +92,6 @@ func FetchEditorialText(editorialURL string) (string, error) {
 
 	body := doc.Find("hr.mt-1").Next()
 	body.Find("details").Remove()
+	body.Find("pre").Remove()
 	return strings.TrimSpace(body.Text()), nil
 }
