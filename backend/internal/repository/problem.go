@@ -19,7 +19,23 @@ func InsertProblem(ctx context.Context, conn *pgx.Conn, p model.Problem) error {
 
 func ListUntaggedProblems(ctx context.Context, conn *pgx.Conn, limit int) ([]model.Problem, error) {
 	rows, err := conn.Query(ctx,
-		`SELECT problem_id, title, difficulty, contest_id FROM problems WHERE tags IS NULL LIMIT $1`,
+		`SELECT problem_id, title, difficulty, contest_id, statement, editorial_text, has_editorial
+		FROM problems WHERE tags IS NULL LIMIT $1`,
+		limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
+}
+
+// ListUnscrapedProblems returns problems that still need their statement
+// (and editorial, if any) scraped. Separate from ListUntaggedProblems so a
+// restart after a crash mid-scrape doesn't re-scrape problems that already
+// succeeded — only tags are missing for those.
+func ListUnscrapedProblems(ctx context.Context, conn *pgx.Conn, limit int) ([]model.Problem, error) {
+	rows, err := conn.Query(ctx,
+		`SELECT problem_id, contest_id FROM problems WHERE tags IS NULL AND statement IS NULL LIMIT $1`,
 		limit,
 	)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"atcoder-recomend/internal/classifier"
 	"atcoder-recomend/internal/client"
@@ -24,21 +25,21 @@ func main() {
 	}
 	defer conn.Close(ctx)
 
-	problems, err := repository.ListUntaggedProblems(ctx, conn, 5)
+	// フェーズ1: まだスクレイピングしてない問題だけを対象にする（再実行時に済んだ分をやり直さない）
+	toScrape, err := repository.ListUnscrapedProblems(ctx, conn, 10000)
 	if err != nil {
 		log.Fatalf("問題取得失敗: %v", err)
 	}
 
 	byContest := make(map[string][]model.Problem)
-	for _, p := range problems {
+	for _, p := range toScrape {
 		byContest[p.ContestID] = append(byContest[p.ContestID], p)
 	}
 
-	var enriched []model.Problem
 	for contestID, probs := range byContest {
 		links, err := client.FetchEditorialLinks(contestID)
 		if err != nil {
-			log.Fatalf("解説一覧取得失敗 (%s): %v", contestID, err)
+			log.Printf("解説一覧取得失敗 (%s): %v（このコンテストは解説無しとして続行）", contestID, err)
 		}
 
 		editorialURLs := make(map[string]string)
@@ -49,38 +50,49 @@ func main() {
 		for _, p := range probs {
 			statement, err := client.FetchProblemStatement(contestID, p.ProblemID)
 			if err != nil {
-				log.Fatalf("問題文取得失敗 (%s): %v", p.ProblemID, err)
+				log.Printf("問題文取得失敗 (%s): %v（スキップ）", p.ProblemID, err)
+				continue
 			}
-			p.Statement = &statement
 
+			var editorialText *string
+			hasEditorial := false
 			if url, ok := editorialURLs[p.ProblemID]; ok {
 				text, err := client.FetchEditorialText(url)
 				if err != nil {
-					log.Fatalf("解説取得失敗 (%s): %v", p.ProblemID, err)
+					log.Printf("解説取得失敗 (%s): %v（解説無しとして続行）", p.ProblemID, err)
+				} else {
+					editorialText = &text
+					hasEditorial = true
 				}
-				p.EditorialText = &text
-				p.HasEditorial = true
-			} else {
-				p.HasEditorial = false
 			}
 
-			if err := repository.UpdateProblemScrapedContent(ctx, conn, p.ProblemID, statement, p.EditorialText, p.HasEditorial); err != nil {
+			if err := repository.UpdateProblemScrapedContent(ctx, conn, p.ProblemID, statement, editorialText, hasEditorial); err != nil {
 				log.Fatalf("スクレイピング内容保存失敗 (%s): %v", p.ProblemID, err)
 			}
 
-			enriched = append(enriched, p)
+			time.Sleep(3 * time.Second)
 		}
 	}
 
-	results, err := classifier.ClassifyBatch(ctx, enriched)
+	// フェーズ2: まだタグが無い問題（今回・過去にスクレイピング済みの分すべて）を分類
+	problems, err := repository.ListUntaggedProblems(ctx, conn, 10000)
 	if err != nil {
-		log.Fatalf("分類失敗: %v", err)
+		log.Fatalf("問題取得失敗: %v", err)
 	}
 
-	for _, r := range results {
-		if err := repository.UpdateProblemTags(ctx, conn, r.ProblemID, r.Tags); err != nil {
-			log.Fatalf("タグ保存失敗 (%s): %v", r.ProblemID, err)
+	chunkSize := 20
+	for i := 0; i < len(problems); i += chunkSize {
+		end := min(i+chunkSize, len(problems))
+		chunk := problems[i:end]
+		results, err := classifier.ClassifyBatch(ctx, chunk)
+		if err != nil {
+			log.Fatalf("分類失敗: %v", err)
 		}
-		fmt.Printf("%s: %v\n", r.ProblemID, r.Tags)
+		for _, r := range results {
+			if err := repository.UpdateProblemTags(ctx, conn, r.ProblemID, r.Tags); err != nil {
+				log.Fatalf("タグ保存失敗 (%s): %v", r.ProblemID, err)
+			}
+			fmt.Printf("%s: %v\n", r.ProblemID, r.Tags)
+		}
 	}
 }

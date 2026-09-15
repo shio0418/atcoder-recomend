@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 
@@ -20,7 +19,7 @@ type EditorialLink struct {
 // (別解/ユーザ解説) and external links (YouTube, blogs) are skipped since
 // they either add noise or can't be scraped as plain text.
 func FetchEditorialLinks(contestID string) ([]EditorialLink, error) {
-	resp, err := http.Get(fmt.Sprintf("https://atcoder.jp/contests/%s/editorial?lang=ja", contestID))
+	resp, err := getWithRetry(fmt.Sprintf("https://atcoder.jp/contests/%s/editorial?lang=ja", contestID))
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +78,7 @@ func FetchEditorialLinks(contestID string) ([]EditorialLink, error) {
 
 // FetchEditorialText fetches an editorial page and extracts its body text.
 func FetchEditorialText(editorialURL string) (string, error) {
-	resp, err := http.Get(editorialURL)
+	resp, err := getWithRetry(editorialURL)
 	if err != nil {
 		return "", err
 	}
