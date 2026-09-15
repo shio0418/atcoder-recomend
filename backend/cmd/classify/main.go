@@ -70,7 +70,7 @@ func main() {
 				log.Fatalf("スクレイピング内容保存失敗 (%s): %v", p.ProblemID, err)
 			}
 
-			time.Sleep(3 * time.Second)
+			time.Sleep(2 * time.Second)
 		}
 	}
 
@@ -86,7 +86,8 @@ func main() {
 		chunk := problems[i:end]
 		results, err := classifier.ClassifyBatch(ctx, chunk)
 		if err != nil {
-			log.Fatalf("分類失敗: %v", err)
+			log.Printf("分類失敗 (%d〜%d件目): %v（このチャンクはスキップ、次回再実行で対象になります）", i, end-1, err)
+			continue
 		}
 		for _, r := range results {
 			if err := repository.UpdateProblemTags(ctx, conn, r.ProblemID, r.Tags); err != nil {

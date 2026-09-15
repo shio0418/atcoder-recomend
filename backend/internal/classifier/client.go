@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"time"
 
 	"google.golang.org/genai"
 )
@@ -37,7 +38,19 @@ func ClassifyBatch(ctx context.Context, problems []model.Problem) ([]Classificat
 		},
 	}
 
-	resp, err := client.Models.GenerateContent(ctx, "gemini-3.6-flash", genai.Text(prompt), config)
+	const maxAttempts = 5
+	backoff := time.Second
+	var resp *genai.GenerateContentResponse
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		if attempt > 0 {
+			time.Sleep(backoff)
+			backoff *= 2
+		}
+		resp, err = client.Models.GenerateContent(ctx, "gemini-3.6-flash", genai.Text(prompt), config)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
