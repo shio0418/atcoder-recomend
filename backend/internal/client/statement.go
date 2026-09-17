@@ -21,6 +21,15 @@ func FetchProblemStatement(contestID, problemID string) (string, error) {
 		return "", err
 	}
 
-	statement := doc.Find("#task-statement span.lang-ja")
-	return strings.TrimSpace(statement.Text()), nil
+	// Modern contests wrap the statement in a lang-specific span so both
+	// languages can coexist in the DOM. Older/single-language contests
+	// don't have that split at all, so fall back to the whole block.
+	text := doc.Find("#task-statement span.lang-ja")
+	if text.Length() == 0 {
+		text = doc.Find("#task-statement").First()
+	}
+	text.Find("h3:contains('例')").Parent().Remove()
+	result := strings.TrimSpace(text.Text())
+
+	return result, nil
 }
