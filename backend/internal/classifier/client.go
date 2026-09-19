@@ -46,7 +46,7 @@ func ClassifyBatchWithGemini(ctx context.Context, problems []model.Problem) ([]C
 			time.Sleep(backoff)
 			backoff *= 2
 		}
-		resp, err = client.Models.GenerateContent(ctx, "gemini-3.6-flash", genai.Text(prompt), config)
+		resp, err = client.Models.GenerateContent(ctx, "gemini-2.5-flash", genai.Text(prompt), config)
 		if err == nil {
 			break
 		}
