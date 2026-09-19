@@ -78,6 +78,7 @@ func FetchProblems() ([]model.Problem, error) {
 		difficulty := models[p.ID].Difficulty
 		result = append(result, model.Problem{
 			ProblemID:  p.ID,
+			ContestID:  p.ContestID,
 			Title:      p.Title,
 			Difficulty: difficulty,
 		})
