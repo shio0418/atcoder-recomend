@@ -90,7 +90,7 @@ func main() {
 			continue
 		}
 		for _, r := range results {
-			if err := repository.UpdateProblemTags(ctx, conn, r.ProblemID, r.Tags); err != nil {
+			if err := repository.UpdateProblemTags(ctx, conn, r.ProblemID, r.Tags, r.Probabilities); err != nil {
 				log.Fatalf("タグ保存失敗 (%s): %v", r.ProblemID, err)
 			}
 			fmt.Printf("%s: %v\n", r.ProblemID, r.Tags)

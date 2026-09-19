@@ -44,10 +44,10 @@ func ListUnscrapedProblems(ctx context.Context, conn *pgx.Conn, limit int) ([]mo
 	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
 }
 
-func UpdateProblemTags(ctx context.Context, conn *pgx.Conn, problemID string, tags []string) error {
+func UpdateProblemTags(ctx context.Context, conn *pgx.Conn, problemID string, tags []string, probabilities map[string]float64) error {
 	_, err := conn.Exec(ctx,
-		`UPDATE problems SET tags = $1 WHERE problem_id = $2`,
-		tags, problemID,
+		`UPDATE problems SET tags = $1, tag_probabilities = $2 WHERE problem_id = $3`,
+		tags, probabilities, problemID,
 	)
 	return err
 }

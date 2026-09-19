@@ -10,7 +10,7 @@ import (
 	"google.golang.org/genai"
 )
 
-func ClassifyBatch(ctx context.Context, problems []model.Problem) ([]ClassificationResult, error) {
+func ClassifyBatchWithGemini(ctx context.Context, problems []model.Problem) ([]ClassificationResult, error) {
 	prompt := BuildPrompt(problems)
 
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
