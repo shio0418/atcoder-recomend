@@ -26,9 +26,12 @@ func getWithRetry(url string) (*http.Response, error) {
 			lastErr = err
 			continue
 		}
-		if resp.StatusCode >= 500 {
+		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 			resp.Body.Close()
 			lastErr = fmt.Errorf("status %d", resp.StatusCode)
+			if resp.StatusCode >= 400 && resp.StatusCode < 500 && resp.StatusCode != http.StatusTooManyRequests {
+				return nil, lastErr
+			}
 			continue
 		}
 		return resp, nil
