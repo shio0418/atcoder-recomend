@@ -30,6 +30,8 @@ func FetchProblemStatement(contestID, problemID string) (string, error) {
 	}
 	text.Find("h3:contains('例')").Parent().Remove()
 	result := strings.TrimSpace(text.Text())
-
+	if result == "" {
+		return "", fmt.Errorf("問題文を抽出できませんでした")
+	}
 	return result, nil
 }
