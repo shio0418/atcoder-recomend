@@ -20,7 +20,7 @@ func InsertProblem(ctx context.Context, conn *pgx.Conn, p model.Problem) error {
 func ListUntaggedProblems(ctx context.Context, conn *pgx.Conn, limit int) ([]model.Problem, error) {
 	rows, err := conn.Query(ctx,
 		`SELECT problem_id, title, difficulty, contest_id, statement, editorial_text, has_editorial
-		FROM problems WHERE tags IS NULL LIMIT $1`,
+		FROM problems WHERE tags IS NULL AND statement IS NOT NULL LIMIT $1`,
 		limit,
 	)
 	if err != nil {
