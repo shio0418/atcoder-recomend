@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +14,7 @@ import (
 )
 
 type jevRequest struct {
+	Model     string                       `json:"model"`
 	State     map[string]string            `json:"state"`
 	Questions map[string]jevChoiceQuestion `json:"questions"`
 }
@@ -53,12 +56,13 @@ func buildJevRequest(p model.Problem) jevRequest {
 	questions := map[string]jevChoiceQuestion{
 		"tags": jevChoiceQuestion{
 			Type:         "choice",
-			Instructions: "...",
+			Instructions: "この競技プログラミングの問題を解くために主に必要となるアルゴリズム・データ構造の分野を、選択肢の中から選んでください。複数の分野が関係する場合でも、最も本質的な1つを選んでください。当てはまるものが無い場合は、無理に選ばず確信度を低くしてください。",
 			Criteria:     jevCriteria,
 		},
 	}
-	return jevRequest {
-		State: state,
+	return jevRequest{
+		Model:     "jev-latest",
+		State:     state,
 		Questions: questions,
 	}
 }
@@ -90,7 +94,17 @@ func callJev(ctx context.Context, req jevRequest) (jevResponse, error) {
 		if err != nil {
 			continue
 		}
+		if resp.StatusCode != http.StatusOK {
+			respBody, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			err = fmt.Errorf("jev status %d: %s", resp.StatusCode, respBody)
+			if resp.StatusCode >= 400 && resp.StatusCode < 500 && resp.StatusCode != http.StatusTooManyRequests {
+				return jevResponse{}, err
+			}
+			continue
+		}
 		err = json.NewDecoder(resp.Body).Decode(&result)
+		resp.Body.Close()
 		if err == nil {
 			break
 		}
