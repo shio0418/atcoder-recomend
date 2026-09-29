@@ -1,4 +1,5 @@
 import type { Problem } from './api'
+import { difficultyColor } from './difficultyColor'
 
 type Props = {
   problems: Problem[]
@@ -20,8 +21,19 @@ export function NewCandidateList({ problems }: Props) {
           >
             {p.title}
           </a>
-          <span>難易度: {p.difficulty ?? '不明'}</span>
-          <span className="tags">{p.tags.join(', ')}</span>
+          <span
+            className="difficulty-badge"
+            style={{ backgroundColor: difficultyColor(p.difficulty) }}
+          >
+            {p.difficulty ?? '不明'}
+          </span>
+          <span className="tags">
+            {p.tags.map((tag) => (
+              <span key={tag} className="tag-badge">
+                {tag}
+              </span>
+            ))}
+          </span>
         </li>
       ))}
     </ul>
