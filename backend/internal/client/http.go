@@ -21,7 +21,16 @@ func getWithRetry(url string) (*http.Response, error) {
 			backoff *= 2
 		}
 
-		resp, err := http.Get(url)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return nil, err
+		}
+		// AtCoderはデフォルトのGo User-Agent(Go-http-client/1.1)だと
+		// 403を返してブロックしてくる(特に/submissions/配下)ので、
+		// ブラウザっぽいUser-Agentを送る。
+		req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; atcoder-recomend/1.0)")
+
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			lastErr = err
 			continue
