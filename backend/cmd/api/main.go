@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -21,7 +20,7 @@ type recommendResponse struct {
 	New    []model.Problem       `json:"new"`
 }
 
-func recommendHandler(conn *pgx.Conn) echo.HandlerFunc {
+func recommendHandler(conn repository.DBTX) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		rating, err := client.FetchRating("uwaaaaaaa")
@@ -59,15 +58,17 @@ func main() {
 		log.Fatalf(".env読み込み失敗: %v", err)
 	}
 	ctx := context.Background()
-	conn, err := repository.Connect(ctx)
+	pool, err := repository.ConnectPool(ctx)
 	if err != nil {
 		log.Fatalf("DB接続失敗: %v", err)
 	}
-	defer conn.Close(ctx)
+	defer pool.Close()
 
 	e := echo.New()
-	e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:5173", "http://localhost:5174"},
+	}))
 
-	e.GET("/api/recommend", recommendHandler(conn))
+	e.GET("/api/recommend", recommendHandler(pool))
 	e.Logger.Fatal(e.Start(":8080"))
 }
