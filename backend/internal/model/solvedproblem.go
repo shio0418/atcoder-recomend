@@ -3,7 +3,7 @@ package model
 import "time"
 
 type SolvedProblem struct {
-	ProblemID string
-	ACCount   int
-	LastACAt  time.Time
+	ProblemID string    `json:"problemId"`
+	ACCount   int       `json:"acCount"`
+	LastACAt  time.Time `json:"lastAcAt"`
 }
