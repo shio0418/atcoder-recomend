@@ -60,3 +60,17 @@ func UpdateProblemScrapedContent(ctx context.Context, conn *pgx.Conn, problemID 
 	return err
 }
 
+func ListCandidateProblems(ctx context.Context, conn *pgx.Conn) ([]model.Problem, error) {
+	rows, err := conn.Query(ctx,
+		`SELECT problems.problem_id, problems.title, problems.difficulty, problems.tags, problems.contest_id
+		FROM problems
+		LEFT JOIN submissions ON problems.problem_id = submissions.problem_id AND submissions.result = 'AC'
+		WHERE problems.tags IS NOT NULL
+		AND problems.difficulty IS NOT NULL
+		AND submissions.problem_id IS NULL`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
+}
