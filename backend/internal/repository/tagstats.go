@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func GetTagStats(ctx context.Context, conn *pgx.Conn) ([]model.TagStat, error) {
+func GetTagStats(ctx context.Context, conn DBTX) ([]model.TagStat, error) {
 	rows, err := conn.Query(ctx,
 		`SELECT tag, count(*) AS attempts, count(*) FILTER (WHERE result = 'AC') AS ac_count FROM submissions
 		JOIN problems ON submissions.problem_id = problems.problem_id

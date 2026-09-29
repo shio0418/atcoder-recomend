@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func GetSolvedProblems(ctx context.Context, conn *pgx.Conn) ([]model.SolvedProblem, error) {
+func GetSolvedProblems(ctx context.Context, conn DBTX) ([]model.SolvedProblem, error) {
 	rows, err := conn.Query(ctx,
 		`SELECT problem_id, count(*) AS ac_count, MAX(submitted_at) AS last_ac_at
 		FROM submissions
