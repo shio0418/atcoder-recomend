@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// TODO: 苦手に含める閾値は適当に決めたので後で調整してもいいかも
 const THRESHOLD = 0.5
 
 func ReviewCandidates(solved []model.SolvedProblem, now time.Time) []model.SolvedProblem {
