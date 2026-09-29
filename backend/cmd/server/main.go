@@ -33,7 +33,7 @@ func main() {
 	}
 	fmt.Printf("問題 %d 件を保存しました\n", len(problems))
 
-	submissions, err := client.FetchSubmissions("uwaaaaaa", 0)
+	submissions, err := client.FetchSubmissions("uwaaaaaaa", 0)
 	if err != nil {
 		log.Fatalf("提出取得失敗: %v", err)
 	}
