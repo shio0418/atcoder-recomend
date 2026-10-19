@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func EmbedBatch(ctx context.Context, texts map[string]string) (map[string]embedpb.EmbedResponse, error) {
+func EmbedBatch(ctx context.Context, texts map[string]string) (map[string]*embedpb.EmbedResponse, error) {
 	conn, err := grpc.NewClient("localhost:5051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
@@ -32,7 +32,7 @@ func EmbedBatch(ctx context.Context, texts map[string]string) (map[string]embedp
 		stream.CloseSend()
 	}()
 
-	results := make(map[string]embedpb.EmbedResponse)
+	results := make(map[string]*embedpb.EmbedResponse)
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
@@ -41,7 +41,7 @@ func EmbedBatch(ctx context.Context, texts map[string]string) (map[string]embedp
 		if err != nil {
 			return nil, err
 		}
-		results[resp.ProblemId] = *resp
+		results[resp.ProblemId] = resp
 	}
 	return results, nil
 }
