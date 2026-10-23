@@ -96,3 +96,18 @@ func ListCandidateProblems(ctx context.Context, conn DBTX) ([]model.Problem, err
 	}
 	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
 }
+
+func FindSimilarProblems(ctx context.Context, conn DBTX, problemID string, limit int) ([]model.Problem, error) {
+	rows, err := conn.Query(ctx,
+		`SELECT problems.problem_id, problems.title, problems.difficulty, problems.tags, problems.contest_id
+		FROM problems
+		WHERE embedding is NOT NULL AND problem_id != $1
+		ORDER BY embedding <=> (SELECT embedding FROM problems WHERE problem_id = $1)
+		LIMIT $2`,
+		problemID, limit,
+	)
+		if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
+}

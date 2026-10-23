@@ -22,7 +22,7 @@ func main() {
 	}
 	defer conn.Close(ctx)
 
-	toEmbed, err := repository.ListUnembeddedProblems(ctx, conn, 20)
+	toEmbed, err := repository.ListUnembeddedProblems(ctx, conn, 10000)
 	if err != nil {
 		log.Fatalf("問題取得失敗: %v", err)
 	}
