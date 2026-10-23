@@ -1,6 +1,6 @@
 # 進捗・TODO
 
-最終更新: 2026-09-29
+最終更新: 2026-10-23
 
 ## 今どこにいるか
 
@@ -10,14 +10,20 @@
 
 **提出コード診断機能: PoC実施後、見送り**。PoC（[#20](https://github.com/shio0418/atcoder-recomend/issues/20)、`docs/phase2_poc_notes.md`）自体は良好な結果（WAコード+ACコードからオーバーフロー原因を的確に診断できた）だったが、実装してもJevのタグ分類（Phase0）と構造的に同じ（LLMを1回呼んで構造化出力を貰うだけ）でMLOps的な学びが薄く、本人のモチベーションも高くないため、本実装（[#19](https://github.com/shio0418/atcoder-recomend/issues/19)）は見送り判断。両issueともクローズ済み。
 
-**方針転換: embedding類似検索 → 協調フィルタリングを優先**。MLOps基盤としての学び・面白さを優先し、design doc Phase3（協調フィルタリング、Python+gRPC推論サービス分離、MLflow実験管理、評価パイプライン）を主軸に据える。対応issue: [#21](https://github.com/shio0418/atcoder-recomend/issues/21)（embedding類似検索、P2）, [#22](https://github.com/shio0418/atcoder-recomend/issues/22)（協調フィルタリング、P3、親issue）。
+**方針転換: embedding類似検索 → 協調フィルタリングを優先**。MLOps基盤としての学び・面白さを優先し、design doc Phase3（協調フィルタリング、Python+gRPC推論サービス分離、MLflow実験管理、評価パイプライン）を主軸に据える。
+
+**#21（embedding類似検索）: バックエンド完了**。プロジェクト初のPython+gRPCサービス(`ml_service/`)として、e5(`intfloat/multilingual-e5-small`)で問題文をembedding化、pgvector(`problems.embedding`列、コサイン距離)で類似検索するところまで実装・実データ(9316件)で検証済み。双方向streaming RPC・`inference_calls`テーブルでの推論ログ記録・自前モデルのバージョン管理など、Phase3のCFで必要になるPython/gRPCパターンを先に一通り経験できた。
+
+- 妥当性検証: `arc031_3`を例に、類似とされた上位5問の平均距離(約0.071)がランダム5問の平均距離(約0.108)より明確に小さく、タグの重なり(貪欲法・動的計画法)とも整合していることを確認
+- **フロント/API統合は未着手**（今回のスコープ外、意図的）。`cmd/api`に類似問題検索エンドポイントを足して、フロントの新規候補リストに組み込む作業が残ってる
+- 対応issue: [#21](https://github.com/shio0418/atcoder-recomend/issues/21)
 
 ## 次にやること（優先順）
 
-1. **#21: embeddingベースの類似問題検索**
-   問題文をembedding化してpgvectorで類似検索。自分の既存データ（タグ付け済み9310件）だけで完結でき、他ユーザーデータへの依存が無いので先に着手する。タグ検索（粗いフィルタ）とembedding類似度を組み合わせる設計。
+1. **#21のフロント/API統合**（任意、余裕があれば）
+   `cmd/api`に類似問題検索のエンドポイントを追加し、フロントの新規候補リストに「似た問題」を表示する。バックエンドは動いてるので、繋ぐだけの作業。
 2. **#22: 協調フィルタリングによる推薦モデル**
-   他ユーザーの提出データ取得→CFモデル構築。Python+gRPCでの推論サービス分離、MLflow実験管理、評価パイプライン(precision@k)、モデルバージョニングまで含む、Phase3の本命。規模が大きいので着手時にサブissueへ分割する。
+   他ユーザーの提出データ取得→CFモデル構築。Python+gRPCでの推論サービス分離、MLflow実験管理、評価パイプライン(precision@k)、モデルバージョニングまで含む、Phase3の本命。規模が大きいので着手時にサブissueへ分割する。embedding検索でPython/gRPCの型は一通り経験済みなので、CF固有の課題（データ収集・モデル学習・評価設計）に集中できる。
 
 ## 余裕があればやりたいこと（someday/maybe）
 
@@ -29,6 +35,7 @@
 - 残り222件について、個別にページ構造を調査して救えるものがないか見る（優先度低い、2.3%の損失は許容範囲と判断済み）
 - ルールベースの完全一致マッチング（一度検討して見送った。優先度低い）
 - 観測性（ログ・メトリクス）、CD（本番インフラ未構築のため未着手）
+- **Jev分類呼び出しの`inference_calls`記録**: `inference_calls`テーブル・`InsertInferenceCall`はembedding呼び出し用に実装済みだが、Jevの`classifyOne`側からはまだ呼んでない。テーブル設計は共通化済みなので、`cmd/classify`に数行足すだけで対応できる
 - **自由テキストでの問題検索**: 今のembedding類似検索(#21)は既存問題同士の類似度しか見ない設計だが、将来的に「ユーザーが自由入力したテキストをその場でembeddingして検索する」機能も作れる余地がある。この場合はリアルタイム推論の速度が効いてくるので、embeddingモデルの選定(e5 vs StaticEmbedding等)を再検討する価値が出てくる。今回のスコープには含めない
 
 ## 決定済みで蒸し返さないこと
@@ -44,3 +51,7 @@
 - 復習（忘却曲線ベース）と新規開拓（弱点タグ×難易度バンド）は別ルートのまま、統合・優先度付けはしない（Phase1のスコープ外）
 - `internal/repository`の関数は`DBTX`インターフェース（`*pgx.Conn`と`*pgxpool.Pool`両対応）を引数に取る。バッチ系(`cmd/server`等)は`Connect`(単一接続)、`cmd/api`は`ConnectPool`(並行リクエスト対応)を使い分ける
 - 提出コード診断機能はPoCで実現可能性を確認済みだが、実装は見送り（#19, #20クローズ済み）。理由を蒸し返して再検討しない。やるとしても優先度は embedding類似検索・協調フィルタリングより低い
+- embeddingモデルはe5(`intfloat/multilingual-e5-small`)を採用、StaticEmbeddingは不採用。今回の用途は9316件の一括バッチ処理であり、速度よりも精度を優先する判断（詳細はDESIGN.mdの決定理由表を参照）
+- embedding生成はGoから外部APIを直接呼ぶ(Gemini等)のではなく、自前でe5をPythonでホストしgRPC経由で呼ぶ構成にした。Phase3の協調フィルタリングで必然的に必要になるPython推論サービス分離・gRPCのパターンを、リスクの低いタスクで先に実践する狙い
+- embeddingサービスのgRPC通信は双方向streaming（`rpc Embed(stream EmbedRequest) returns (stream EmbedResponse)`）。unary batchにしなかった理由は、大量件数を一度にメモリに載せず、送信と受信・DB書き込みをパイプライン化するため
+- 推論コスト・レイテンシの記録は`inference_calls`という汎用テーブルに統一し、Jevの分類呼び出しとembedding呼び出し両方から使える設計にした（個別にテーブルを分けない）。ただしJev側への実装はまだ行っていない（someday）
