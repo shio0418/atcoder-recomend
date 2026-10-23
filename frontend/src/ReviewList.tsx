@@ -10,10 +10,12 @@ export function ReviewList({ problems }: Props) {
     return <p>今日復習すべき問題はありません。</p>
   }
 
-  const sorted = [...problems].sort(
-    (a, b) =>
-      daysOverdue(b.lastAcAt, b.acCount) - daysOverdue(a.lastAcAt, a.acCount),
-  )
+  const sorted = [...problems]
+    .sort(
+      (a, b) =>
+        daysOverdue(b.lastAcAt, b.acCount) - daysOverdue(a.lastAcAt, a.acCount),
+    )
+    .slice(0, 5)
 
   return (
     <ul className="problem-list">

@@ -11,9 +11,11 @@ export function NewCandidateList({ problems }: Props) {
     return <p>今の条件に合う新規問題はありません。</p>
   }
 
+  const limited = problems.slice(0, 5)
+
   return (
     <ul className="problem-list">
-      {problems.map((p) => (
+      {limited.map((p) => (
         <li key={p.problemId} className="problem-card-wrapper">
           <div className="problem-card-row">
             <a
