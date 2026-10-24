@@ -12,7 +12,7 @@ const THRESHOLD = 0.5
 func ReviewCandidates(solved []model.SolvedProblem, now time.Time) []model.SolvedProblem {
 	var result []model.SolvedProblem
 	for _, problem := range solved {
-		interval := ForgettingCurveInterval(problem.ACCount)
+		interval := ForgettingCurveInterval(problem.ACCount, problem.WACount)
 		dueAt := problem.LastACAt.AddDate(0, 0, interval)
 		if now.After(dueAt) {
 			result = append(result, problem)

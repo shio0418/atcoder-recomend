@@ -1,5 +1,6 @@
 import type { Problem } from './api'
 import { difficultyColor } from './difficultyColor'
+import { SimilarProblems } from './SimilarProblems'
 
 type Props = {
   problems: Problem[]
@@ -10,30 +11,35 @@ export function NewCandidateList({ problems }: Props) {
     return <p>今の条件に合う新規問題はありません。</p>
   }
 
+  const limited = problems.slice(0, 5)
+
   return (
     <ul className="problem-list">
-      {problems.map((p) => (
-        <li key={p.problemId} className="problem-card">
-          <a
-            href={`https://atcoder.jp/contests/${p.contestId}/tasks/${p.problemId}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {p.title}
-          </a>
-          <span
-            className="difficulty-badge"
-            style={{ backgroundColor: difficultyColor(p.difficulty) }}
-          >
-            {p.difficulty ?? '不明'}
-          </span>
-          <span className="tags">
-            {p.tags.map((tag) => (
-              <span key={tag} className="tag-badge">
-                {tag}
-              </span>
-            ))}
-          </span>
+      {limited.map((p) => (
+        <li key={p.problemId} className="problem-card-wrapper">
+          <div className="problem-card-row">
+            <a
+              href={`https://atcoder.jp/contests/${p.contestId}/tasks/${p.problemId}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {p.title}
+            </a>
+            <span
+              className="difficulty-badge"
+              style={{ backgroundColor: difficultyColor(p.difficulty) }}
+            >
+              {p.difficulty ?? '不明'}
+            </span>
+            <span className="tags">
+              {p.tags.map((tag) => (
+                <span key={tag} className="tag-badge">
+                  {tag}
+                </span>
+              ))}
+            </span>
+          </div>
+          <SimilarProblems problemId={p.problemId} />
         </li>
       ))}
     </ul>

@@ -6,4 +6,5 @@ type SolvedProblem struct {
 	ProblemID string    `json:"problemId"`
 	ACCount   int       `json:"acCount"`
 	LastACAt  time.Time `json:"lastAcAt"`
+	WACount   int       `json:"waCount"`
 }

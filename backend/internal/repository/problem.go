@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/pgvector/pgvector-go"
 )
 
 func InsertProblem(ctx context.Context, conn DBTX, p model.Problem) error {
@@ -27,6 +28,27 @@ func ListUntaggedProblems(ctx context.Context, conn DBTX, limit int) ([]model.Pr
 		return nil, err
 	}
 	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
+}
+
+func ListUnembeddedProblems(ctx context.Context, conn DBTX, limit int) ([]model.Problem, error) {
+	rows, err := conn.Query(ctx,
+		`SELECT problem_id, title, difficulty, contest_id, statement, editorial_text, has_editorial
+		FROM problems WHERE embedding IS NULL AND statement IS NOT NULL LIMIT $1`,
+		limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
+}
+
+func UpdateProblemsEmbedding(ctx context.Context, conn DBTX, problemID string, values []float32, embedding_model string) error {
+	embedding := pgvector.NewVector(values)
+	_, err := conn.Exec(ctx,
+		`UPDATE problems SET embedding = $1, embedding_model = $2 WHERE problem_id = $3`,
+		embedding, embedding_model, problemID,
+	)
+	return err
 }
 
 // ListUnscrapedProblems returns problems that still need their statement
@@ -70,6 +92,35 @@ func ListCandidateProblems(ctx context.Context, conn DBTX) ([]model.Problem, err
 		AND submissions.problem_id IS NULL`,
 	)
 	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
+}
+
+func FindSimilarProblems(ctx context.Context, conn DBTX, problemID string, limit int) ([]model.Problem, error) {
+	rows, err := conn.Query(ctx,
+		`SELECT problems.problem_id, problems.title, problems.difficulty, problems.tags, problems.contest_id
+		FROM problems
+		WHERE embedding is NOT NULL AND problem_id != $1
+		ORDER BY embedding <=> (SELECT embedding FROM problems WHERE problem_id = $1)
+		LIMIT $2`,
+		problemID, limit,
+	)
+		if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
+}
+
+func FindSimilarProblemsByTag(ctx context.Context, conn DBTX, problemID string, limit int) ([]model.Problem, error) {
+	rows, err := conn.Query(ctx,
+		`SELECT problems.problem_id, problems.title, problems.difficulty, problems.tags, problems.contest_id
+		FROM problems
+		WHERE problem_id != $1 AND tags && (SELECT tags FROM problems WHERE problem_id = $1)
+		LIMIT $2`,
+		problemID, limit,
+	)
+		if err != nil {
 		return nil, err
 	}
 	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
