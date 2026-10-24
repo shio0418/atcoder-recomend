@@ -9,10 +9,13 @@ import (
 
 func GetSolvedProblems(ctx context.Context, conn DBTX) ([]model.SolvedProblem, error) {
 	rows, err := conn.Query(ctx,
-		`SELECT problem_id, count(*) AS ac_count, MAX(submitted_at) AS last_ac_at
+		`SELECT problem_id,
+			count(*) FILTER (WHERE result = 'AC') AS ac_count,
+			count(*) FILTER (WHERE result != 'AC') AS wa_count,
+			MAX(submitted_at) FILTER (WHERE result = 'AC') AS last_ac_at
 		FROM submissions
-		WHERE result = 'AC'
-		GROUP BY problem_id`,
+		GROUP BY problem_id
+		HAVING count(*) FILTER (WHERE result = 'AC') > 0`,
 	)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,6 @@
 # 進捗・TODO
 
-最終更新: 2026-10-23
+最終更新: 2026-10-25
 
 ## 今どこにいるか
 
@@ -10,19 +10,19 @@
 
 **提出コード診断機能: PoC実施後、見送り**。PoC（[#20](https://github.com/shio0418/atcoder-recomend/issues/20)、`docs/phase2_poc_notes.md`）自体は良好な結果（WAコード+ACコードからオーバーフロー原因を的確に診断できた）だったが、実装してもJevのタグ分類（Phase0）と構造的に同じ（LLMを1回呼んで構造化出力を貰うだけ）でMLOps的な学びが薄く、本人のモチベーションも高くないため、本実装（[#19](https://github.com/shio0418/atcoder-recomend/issues/19)）は見送り判断。両issueともクローズ済み。
 
-**方針転換: embedding類似検索 → 協調フィルタリングを優先**。MLOps基盤としての学び・面白さを優先し、design doc Phase3（協調フィルタリング、Python+gRPC推論サービス分離、MLflow実験管理、評価パイプライン）を主軸に据える。
+**Phase2: 完了**。方針転換してembedding類似検索を実装、診断機能は見送り。design doc Phase3（協調フィルタリング）に主軸を移す。
 
-**#21（embedding類似検索）: バックエンド完了**。プロジェクト初のPython+gRPCサービス(`ml_service/`)として、e5(`intfloat/multilingual-e5-small`)で問題文をembedding化、pgvector(`problems.embedding`列、コサイン距離)で類似検索するところまで実装・実データ(9316件)で検証済み。双方向streaming RPC・`inference_calls`テーブルでの推論ログ記録・自前モデルのバージョン管理など、Phase3のCFで必要になるPython/gRPCパターンを先に一通り経験できた。
+**#21（embedding類似検索）: 完了**（フロント/API統合まで含む）。プロジェクト初のPython+gRPCサービス(`ml_service/`)として、e5(`intfloat/multilingual-e5-small`)で問題文をembedding化、pgvector(`problems.embedding`列、コサイン距離)で類似検索。実データ(9316件)で検証済み。双方向streaming RPC・`inference_calls`テーブルでの推論ログ記録・自前モデルのバージョン管理など、Phase3のCFで必要になるPython/gRPCパターンを先に一通り経験できた。
 
 - 妥当性検証: `arc031_3`を例に、類似とされた上位5問の平均距離(約0.071)がランダム5問の平均距離(約0.108)より明確に小さく、タグの重なり(貪欲法・動的計画法)とも整合していることを確認
-- **フロント/API統合は未着手**（今回のスコープ外、意図的）。`cmd/api`に類似問題検索エンドポイントを足して、フロントの新規候補リストに組み込む作業が残ってる
-- 対応issue: [#21](https://github.com/shio0418/atcoder-recomend/issues/21)
+- `cmd/api`に`/api/similar`(embedding類似度)と`/api/similarByTag`(タグの重なり、`&&`演算子)の2エンドポイントを実装。複合confidenceスコアに混ぜず、独立した2通りの検索として両方フロントに表示（新規候補の「似た問題を見る」から展開）
+- 対応issue: [#21](https://github.com/shio0418/atcoder-recomend/issues/21)（クローズ予定）
+
+**Phase1の補強: 忘却曲線にWA回数を組み込み**。`acCount`はほぼ全問題が1のまま変化しないため、実データでは間隔が常に5日固定になる問題が判明。`submissions`から取れるWA回数（`result != 'AC'`の件数）を使い、`interval = baseInterval / (1 + waCount)`で苦戦した問題ほど復習間隔を短くするよう修正（`GetSolvedProblems`, `ForgettingCurveInterval`, `model.SolvedProblem`）。acCountが育つまで効果が出ない弱点を、1回目の復習から効く信号で補った。
 
 ## 次にやること（優先順）
 
-1. **#21のフロント/API統合**（任意、余裕があれば）
-   `cmd/api`に類似問題検索のエンドポイントを追加し、フロントの新規候補リストに「似た問題」を表示する。バックエンドは動いてるので、繋ぐだけの作業。
-2. **#22: 協調フィルタリングによる推薦モデル**
+1. **#22: 協調フィルタリングによる推薦モデル**
    他ユーザーの提出データ取得→CFモデル構築。Python+gRPCでの推論サービス分離、MLflow実験管理、評価パイプライン(precision@k)、モデルバージョニングまで含む、Phase3の本命。規模が大きいので着手時にサブissueへ分割する。embedding検索でPython/gRPCの型は一通り経験済みなので、CF固有の課題（データ収集・モデル学習・評価設計）に集中できる。
 
 ## 余裕があればやりたいこと（someday/maybe）
@@ -55,3 +55,5 @@
 - embedding生成はGoから外部APIを直接呼ぶ(Gemini等)のではなく、自前でe5をPythonでホストしgRPC経由で呼ぶ構成にした。Phase3の協調フィルタリングで必然的に必要になるPython推論サービス分離・gRPCのパターンを、リスクの低いタスクで先に実践する狙い
 - embeddingサービスのgRPC通信は双方向streaming（`rpc Embed(stream EmbedRequest) returns (stream EmbedResponse)`）。unary batchにしなかった理由は、大量件数を一度にメモリに載せず、送信と受信・DB書き込みをパイプライン化するため
 - 推論コスト・レイテンシの記録は`inference_calls`という汎用テーブルに統一し、Jevの分類呼び出しとembedding呼び出し両方から使える設計にした（個別にテーブルを分けない）。ただしJev側への実装はまだ行っていない（someday）
+- 類似問題検索はembedding類似度とタグの重なりを1つのスコアに混ぜず、独立した2つのAPI/表示として提供する（複合confidenceスコアを作らない方針の延長）
+- 忘却曲線にWA回数を組み込んだ（`interval = baseInterval / (1 + waCount)`）。difficultyベースの補正（元issue #532の`f(p,i)`項）はまだ未実装、WA回数より検証コストが高いため保留
