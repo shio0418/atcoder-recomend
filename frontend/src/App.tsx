@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchRecommendations, type RecommendResponse } from './api'
 import { ReviewList } from './ReviewList'
 import { NewCandidateList } from './NewCandidateList'
+import { SearchSection } from './SearchSection'
 import './App.css'
 
 function App() {
@@ -35,6 +36,8 @@ function App() {
         <h2>新規開拓候補</h2>
         <NewCandidateList problems={data.new} />
       </section>
+
+      <SearchSection />
     </main>
   )
 }
