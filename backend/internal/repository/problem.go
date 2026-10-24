@@ -125,3 +125,20 @@ func FindSimilarProblemsByTag(ctx context.Context, conn DBTX, problemID string, 
 	}
 	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
 }
+
+func SearchProblemsByEmbedding(ctx context.Context, conn DBTX, queryVector pgvector.Vector, difficultyMin *int, difficultyMax *int, limit int) ([]model.Problem, error) {
+	rows, err := conn.Query(ctx,
+		`SELECT problems.problem_id, problems.title, problems.difficulty, problems.tags, problems.contest_id
+		FROM problems
+		WHERE embedding IS NOT NULL
+		AND ($2::int IS NULL OR difficulty >= $2)
+		AND ($3::int IS NULL OR difficulty <= $3)
+		ORDER BY embedding <=> $1
+		LIMIT $4`,
+		queryVector, difficultyMin, difficultyMax, limit,
+	)
+		if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
+}
