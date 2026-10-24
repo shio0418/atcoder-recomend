@@ -111,3 +111,17 @@ func FindSimilarProblems(ctx context.Context, conn DBTX, problemID string, limit
 	}
 	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
 }
+
+func FindSimilarProblemsByTag(ctx context.Context, conn DBTX, problemID string, limit int) ([]model.Problem, error) {
+	rows, err := conn.Query(ctx,
+		`SELECT problems.problem_id, problems.title, problems.difficulty, problems.tags, problems.contest_id
+		FROM problems
+		WHERE problem_id != $1 AND tags && (SELECT tags FROM problems WHERE problem_id = $1)
+		LIMIT $2`,
+		problemID, limit,
+	)
+		if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowToStructByNameLax[model.Problem])
+}

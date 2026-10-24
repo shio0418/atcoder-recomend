@@ -71,6 +71,16 @@ h2 {
   margin-top: 0.4rem;
   padding-left: 0.8rem;
   border-left: 2px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.similar-section h3 {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: normal;
+  margin: 0 0 0.2rem;
 }
 
 .similar-list ul {

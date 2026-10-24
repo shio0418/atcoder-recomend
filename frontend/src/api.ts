@@ -38,3 +38,13 @@ export async function fetchSimilarProblems(problemId: string): Promise<Problem[]
   }
   return res.json()
 }
+
+export async function fetchSimilarProblemsByTag(problemId: string): Promise<Problem[]> {
+  const res = await fetch(
+    `${API_BASE_URL}/api/similarByTag?problem_id=${encodeURIComponent(problemId)}`,
+  )
+  if (!res.ok) {
+    throw new Error(`タグによる類似問題取得に失敗しました (status: ${res.status})`)
+  }
+  return res.json()
+}

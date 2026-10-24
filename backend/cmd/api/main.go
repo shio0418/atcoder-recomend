@@ -69,6 +69,22 @@ func similarHandler(conn repository.DBTX) echo.HandlerFunc {
 	}
 }
 
+func similarByTagHandler(conn repository.DBTX) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+		problemID := c.QueryParam("problem_id")
+		if problemID == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "problem_id is required"})
+		}
+
+		similar, err := repository.FindSimilarProblemsByTag(ctx, conn, problemID, 5)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "タグによる類似問題取得失敗"})
+		}
+		return c.JSON(http.StatusOK, similar)
+	}
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf(".env読み込み失敗: %v", err)
@@ -87,5 +103,6 @@ func main() {
 
 	e.GET("/api/recommend", recommendHandler(pool))
 	e.GET("/api/similar", similarHandler(pool))
+	e.GET("/api/similarByTag", similarByTagHandler(pool))
 	e.Logger.Fatal(e.Start(":8080"))
 }
