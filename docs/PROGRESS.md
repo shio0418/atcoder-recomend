@@ -16,7 +16,8 @@
 
 - 妥当性検証: `arc031_3`を例に、類似とされた上位5問の平均距離(約0.071)がランダム5問の平均距離(約0.108)より明確に小さく、タグの重なり(貪欲法・動的計画法)とも整合していることを確認
 - `cmd/api`に`/api/similar`(embedding類似度)と`/api/similarByTag`(タグの重なり、`&&`演算子)の2エンドポイントを実装。複合confidenceスコアに混ぜず、独立した2通りの検索として両方フロントに表示（新規候補の「似た問題を見る」から展開）
-- 対応issue: [#21](https://github.com/shio0418/atcoder-recomend/issues/21)（クローズ予定）
+- **自由テキスト検索も追加実装済み**: `/api/search?q=...&difficulty_min=...&difficulty_max=...` — ユーザーが入力したテキストをその場でembedding化(1件だけなのでバッチと違い即座に返る、実測でも体感リアルタイムで問題なし)、pgvectorで類似問題を検索しつつ難易度でフィルタ。当初「速度が必要ならStaticEmbedding再検討」としていたが、実際にe5のままで十分な速度だったため変更不要だった。フロントにも検索ボックス＋難易度フィルタUIを実装済み
+- 対応issue: [#21](https://github.com/shio0418/atcoder-recomend/issues/21)（クローズ済み）
 
 **Phase1の補強: 忘却曲線にWA回数を組み込み**。`acCount`はほぼ全問題が1のまま変化しないため、実データでは間隔が常に5日固定になる問題が判明。`submissions`から取れるWA回数（`result != 'AC'`の件数）を使い、`interval = baseInterval / (1 + waCount)`で苦戦した問題ほど復習間隔を短くするよう修正（`GetSolvedProblems`, `ForgettingCurveInterval`, `model.SolvedProblem`）。acCountが育つまで効果が出ない弱点を、1回目の復習から効く信号で補った。
 
@@ -36,7 +37,6 @@
 - ルールベースの完全一致マッチング（一度検討して見送った。優先度低い）
 - 観測性（ログ・メトリクス）、CD（本番インフラ未構築のため未着手）
 - **Jev分類呼び出しの`inference_calls`記録**: `inference_calls`テーブル・`InsertInferenceCall`はembedding呼び出し用に実装済みだが、Jevの`classifyOne`側からはまだ呼んでない。テーブル設計は共通化済みなので、`cmd/classify`に数行足すだけで対応できる
-- **自由テキストでの問題検索**: 今のembedding類似検索(#21)は既存問題同士の類似度しか見ない設計だが、将来的に「ユーザーが自由入力したテキストをその場でembeddingして検索する」機能も作れる余地がある。この場合はリアルタイム推論の速度が効いてくるので、embeddingモデルの選定(e5 vs StaticEmbedding等)を再検討する価値が出てくる。今回のスコープには含めない
 
 ## 決定済みで蒸し返さないこと
 
@@ -57,3 +57,4 @@
 - 推論コスト・レイテンシの記録は`inference_calls`という汎用テーブルに統一し、Jevの分類呼び出しとembedding呼び出し両方から使える設計にした（個別にテーブルを分けない）。ただしJev側への実装はまだ行っていない（someday）
 - 類似問題検索はembedding類似度とタグの重なりを1つのスコアに混ぜず、独立した2つのAPI/表示として提供する（複合confidenceスコアを作らない方針の延長）
 - 忘却曲線にWA回数を組み込んだ（`interval = baseInterval / (1 + waCount)`）。difficultyベースの補正（元issue #532の`f(p,i)`項）はまだ未実装、WA回数より検証コストが高いため保留
+- 自由テキスト検索はe5のまま実装（StaticEmbeddingへの切り替えは不要だった）。1件だけのクエリembeddingは実測でも十分高速で、体感リアルタイムの要件を満たした
