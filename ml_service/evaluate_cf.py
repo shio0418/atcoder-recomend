@@ -1,0 +1,72 @@
+from train_cf import build_matrix, apply_popularity_weighting, compute_similarities, select_similar_users, recommend_problems, load_external_solves
+import numpy as np
+import psycopg2
+import os
+from dotenv import load_dotenv
+
+rng = np.random.default_rng()
+
+def hold_out_problem(matrix, user_index, holdout_ratio=0.2):
+    user_row = matrix[user_index]
+    solved_indices = user_row.indices
+
+    n_holdout = max(1, int(len(solved_indices) * holdout_ratio))
+    held_out = rng.choice(solved_indices, n_holdout, replace = False)
+
+    modified = matrix.tolil()
+    modified[user_index, held_out] = 0
+    modified = modified.tocsr()
+
+    return modified, held_out
+
+def select_users(matrix, n, min_solved=5):
+    solve_counts = np.asarray(matrix.sum(axis=1)).flatten()
+    canditates = [
+        i for i in range(len(solve_counts))
+        if solve_counts[i] > min_solved
+    ]
+    return rng.choice(canditates, n, replace=False)
+
+def evaluate_user(hidden_matrix, user_index, held_out, k=10):
+    weighted_matrix = apply_popularity_weighting(hidden_matrix)
+    similarities = compute_similarities(weighted_matrix, user_index)
+
+    similar_indicies = select_similar_users(hidden_matrix, similarities, user_index)
+    top, scores = recommend_problems(weighted_matrix, similarities, user_index, similar_indicies, k)
+
+    success = [
+        pid for pid in top
+        if pid in held_out
+    ]
+    return len(success) / k
+
+def evaluate_all(matrix, score_fn, n_users=50, k=10, holdout_ratio=0.2):
+    test_users = select_users(matrix, n_users)
+    precisions = []
+    for user in test_users:
+        hidden_matrix, held_out = hold_out_problem(matrix, user, holdout_ratio)
+        precision = score_fn(hidden_matrix, user, held_out, k)
+        precisions.append(precision)
+    return np.mean(precisions), precisions
+
+def popular_baseline_user(hidden_matrix, user_index, held_out, k=10):
+    solve_counts = np.asarray(hidden_matrix.sum(axis=0)).flatten()
+    already_solved = hidden_matrix[user_index].toarray().flatten()
+    solve_counts[already_solved > 0] = -1
+    top = np.argsort(solve_counts)[::-1][:k]
+    success = [pid for pid in top if pid in held_out]
+    return len(success) / k
+
+if __name__ == "__main__":
+    load_dotenv()
+    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    
+    df = load_external_solves(conn)
+    matrix, user_cat, problem_cat = build_matrix(df)
+    conn.close()
+
+    cf_precision, _ = evaluate_all(matrix, evaluate_user)
+    baseline_precision, _ = evaluate_all(matrix, popular_baseline_user)
+
+    print(f"CF precision@10: {cf_precision:.3f}")
+    print(f"Baseline precision@10: {baseline_precision:.3f}")
