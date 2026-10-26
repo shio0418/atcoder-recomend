@@ -70,7 +70,7 @@ if __name__ == "__main__":
     similarities = compute_similarities(weighted_matrix, my_index)
 
     similar_indicies = select_similar_users(matrix, similarities, my_index)
-    top, scores = recommend_problems(matrix, similarities, my_index, similar_indicies)
+    top, scores = recommend_problems(weighted_matrix, similarities, my_index, similar_indicies)
 
     for idx, score in zip(top, scores):
         print(problem_cat.categories[idx], score)
