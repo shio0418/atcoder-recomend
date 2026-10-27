@@ -4,6 +4,7 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 import mlflow
+from hybrid_cf import make_hybrid_score_fn, find_weak_tags, load_problem_tags
 
 rng = np.random.default_rng()
 
@@ -64,9 +65,12 @@ if __name__ == "__main__":
     
     df = load_external_solves(conn)
     matrix, user_cat, problem_cat = build_matrix(df)
+
+    weak_tags = find_weak_tags(conn)
+    problem_tags = load_problem_tags(conn)
     conn.close()
 
-    with mlflow.start_run(run_name="pure_cf"):
+    with mlflow.start_run(run_name="cf_comparison"):
         mlflow.log_param("n_users", 50)
         mlflow.log_param("k", 10)
         mlflow.log_param("holdout_ratio", 0.2)
@@ -75,8 +79,13 @@ if __name__ == "__main__":
         cf_precision, _ = evaluate_all(matrix, evaluate_user)
         baseline_precision, _ = evaluate_all(matrix, popular_baseline_user)
 
+        hybrid_score_fn = make_hybrid_score_fn(weak_tags, problem_cat, problem_tags)
+        hybrid_precision, _ = evaluate_all(matrix, hybrid_score_fn)
+
         mlflow.log_metric("cf_precision_at_10", cf_precision)
         mlflow.log_metric("baseline_precision_at_10", baseline_precision)
+        mlflow.log_metric("hybrid_precision_at_10", hybrid_precision)
 
         print(f"CF precision@10: {cf_precision:.3f}")
         print(f"Baseline precision@10: {baseline_precision:.3f}")
+        print(f"Hybrid precision@10: {hybrid_precision:.3f}")
