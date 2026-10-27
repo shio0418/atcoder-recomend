@@ -1,7 +1,7 @@
 package embedding
 
 import (
-	embedpb "atcoder-recomend/internal/embedpb/embedding/v1"
+	embedpb "atcoder-recomend/internal/pb/embedding/v1"
 	"context"
 	"fmt"
 	"io"

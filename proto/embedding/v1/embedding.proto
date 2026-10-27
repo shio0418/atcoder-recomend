@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package embedding.v1;
 
-option go_package = "atcoder-recomend/internal/embedpb";
+option go_package = "atcoder-recomend/internal/pb/embedding";
 
 service EmbeddingService {
     rpc Embed(stream EmbedRequest) returns (stream EmbedResponse);
