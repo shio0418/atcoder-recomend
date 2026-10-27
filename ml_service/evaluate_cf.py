@@ -3,6 +3,7 @@ import numpy as np
 import psycopg2
 import os
 from dotenv import load_dotenv
+import mlflow
 
 rng = np.random.default_rng()
 
@@ -65,8 +66,17 @@ if __name__ == "__main__":
     matrix, user_cat, problem_cat = build_matrix(df)
     conn.close()
 
-    cf_precision, _ = evaluate_all(matrix, evaluate_user)
-    baseline_precision, _ = evaluate_all(matrix, popular_baseline_user)
+    with mlflow.start_run(run_name="pure_cf"):
+        mlflow.log_param("n_users", 50)
+        mlflow.log_param("k", 10)
+        mlflow.log_param("holdout_ratio", 0.2)
+        mlflow.log_param("method", "user_based_cf_with_popularity_weighting")
 
-    print(f"CF precision@10: {cf_precision:.3f}")
-    print(f"Baseline precision@10: {baseline_precision:.3f}")
+        cf_precision, _ = evaluate_all(matrix, evaluate_user)
+        baseline_precision, _ = evaluate_all(matrix, popular_baseline_user)
+
+        mlflow.log_metric("cf_precision_at_10", cf_precision)
+        mlflow.log_metric("baseline_precision_at_10", baseline_precision)
+
+        print(f"CF precision@10: {cf_precision:.3f}")
+        print(f"Baseline precision@10: {baseline_precision:.3f}")
