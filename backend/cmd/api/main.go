@@ -1,6 +1,7 @@
 package main
 
 import (
+	"atcoder-recomend/internal/cf"
 	"atcoder-recomend/internal/client"
 	"atcoder-recomend/internal/embedding"
 	"atcoder-recomend/internal/model"
@@ -127,6 +128,17 @@ func searchProblemHandler(conn repository.DBTX) echo.HandlerFunc {
 	}
 }
 
+func cfRecommendHandler(conn repository.DBTX) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+		problemIDs, err := cf.Recommend(ctx, "uwaaaaaaa", 10)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "CF推薦取得失敗"})
+		}
+		return c.JSON(http.StatusOK, problemIDs)
+	}
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf(".env読み込み失敗: %v", err)
@@ -147,5 +159,6 @@ func main() {
 	e.GET("/api/similar", similarHandler(pool))
 	e.GET("/api/similarByTag", similarByTagHandler(pool))
 	e.GET("/api/search", searchProblemHandler(pool))
+	e.GET("/api/cfRecommend", cfRecommendHandler(pool))
 	e.Logger.Fatal(e.Start(":8080"))
 }
