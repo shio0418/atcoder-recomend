@@ -72,3 +72,11 @@ export async function searchProblems(
   }
   return res.json()
 }
+
+export async function fetchCFRecommendations(): Promise<string[]> {
+  const res = await fetch(`${API_BASE_URL}/api/cfRecommend`)
+  if (!res.ok) {
+    throw new Error(`協調フィルタリング推薦の取得に失敗しました (status: ${res.status})`)
+  }
+  return res.json()
+}

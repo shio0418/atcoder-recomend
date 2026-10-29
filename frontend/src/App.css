@@ -124,6 +124,12 @@ h2 {
   color: #c00;
 }
 
+.section-note {
+  color: #666;
+  font-size: 0.85rem;
+  margin: -0.4rem 0 0.6rem;
+}
+
 .search-form {
   display: flex;
   gap: 0.5rem;

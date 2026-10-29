@@ -3,6 +3,7 @@ import { fetchRecommendations, type RecommendResponse } from './api'
 import { ReviewList } from './ReviewList'
 import { NewCandidateList } from './NewCandidateList'
 import { SearchSection } from './SearchSection'
+import { CFRecommendations } from './CFRecommendations'
 import './App.css'
 
 function App() {
@@ -38,6 +39,8 @@ function App() {
       </section>
 
       <SearchSection />
+
+      <CFRecommendations />
     </main>
   )
 }
