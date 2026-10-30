@@ -44,7 +44,7 @@ def make_hybrid_score_fn(weak_tags, problem_cat, problem_tags):
 
         ranked = rerank_by_weak_tag(top, problem_cat, problem_tags, weak_tags)
         success = [
-            pid for pid in top
+            pid for pid in ranked
             if pid in held_out
         ]
         return len(success) / k

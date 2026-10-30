@@ -42,13 +42,16 @@ def evaluate_user(hidden_matrix, user_index, held_out, k=10):
     ]
     return len(success) / k
 
-def evaluate_all(matrix, score_fn, n_users=50, k=10, holdout_ratio=0.2):
+def prepare_eval_cases(matrix, n_users=50, holdout_ratio=0.2):
     test_users = select_users(matrix, n_users)
-    precisions = []
+    cases = []
     for user in test_users:
         hidden_matrix, held_out = hold_out_problem(matrix, user, holdout_ratio)
-        precision = score_fn(hidden_matrix, user, held_out, k)
-        precisions.append(precision)
+        cases.append((user, hidden_matrix, held_out))
+    return cases
+
+def evaluate_all(cases, score_fn, k=10):
+    precisions = [score_fn(hidden_matrix, user, held_out, k) for user, hidden_matrix, held_out in cases]
     return np.mean(precisions), precisions
 
 def popular_baseline_user(hidden_matrix, user_index, held_out, k=10):
@@ -75,12 +78,13 @@ if __name__ == "__main__":
         mlflow.log_param("k", 10)
         mlflow.log_param("holdout_ratio", 0.2)
         mlflow.log_param("method", "user_based_cf_with_popularity_weighting")
+        cases = prepare_eval_cases(matrix, n_users=50, holdout_ratio=0.2)
 
-        cf_precision, _ = evaluate_all(matrix, evaluate_user)
-        baseline_precision, _ = evaluate_all(matrix, popular_baseline_user)
+        cf_precision, _ = evaluate_all(cases, evaluate_user)
+        baseline_precision, _ = evaluate_all(cases, popular_baseline_user)
 
         hybrid_score_fn = make_hybrid_score_fn(weak_tags, problem_cat, problem_tags)
-        hybrid_precision, _ = evaluate_all(matrix, hybrid_score_fn)
+        hybrid_precision, _ = evaluate_all(cases, hybrid_score_fn)
 
         mlflow.log_metric("cf_precision_at_10", cf_precision)
         mlflow.log_metric("baseline_precision_at_10", baseline_precision)
