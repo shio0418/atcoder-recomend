@@ -28,11 +28,12 @@ def matches_weak_tag(problem_index, problem_cat, problem_tags, weak_tags):
     tags = problem_tags.get(problem_id, [])
     return any(tag in weak_tags for tag in tags)
 
-def rerank_by_weak_tag(top, problem_cat, problem_tags, weak_tags):
-    return sorted(
+def rerank_by_weak_tag(top, problem_cat, problem_tags, weak_tags, k):
+    ranked = sorted(
         top,
         key=lambda idx: not matches_weak_tag(idx, problem_cat, problem_tags, weak_tags)
     )
+    return ranked[:k]
 
 def make_hybrid_score_fn(weak_tags, problem_cat, problem_tags):
     def score(hidden_matrix, user_index, held_out, k=10):
@@ -40,9 +41,9 @@ def make_hybrid_score_fn(weak_tags, problem_cat, problem_tags):
         similarities = compute_similarities(weighted_matrix, user_index)
 
         similar_indices = select_similar_users(hidden_matrix, similarities, user_index)
-        top, scores = recommend_problems(weighted_matrix, similarities, user_index, similar_indices, k)
+        top, scores = recommend_problems(weighted_matrix, similarities, user_index, similar_indices, top_k=k * 3)
 
-        ranked = rerank_by_weak_tag(top, problem_cat, problem_tags, weak_tags)
+        ranked = rerank_by_weak_tag(top, problem_cat, problem_tags, weak_tags, k)
         success = [
             pid for pid in ranked
             if pid in held_out

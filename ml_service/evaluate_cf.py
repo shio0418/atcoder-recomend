@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import mlflow
 from hybrid_cf import make_hybrid_score_fn, find_weak_tags, load_problem_tags
 
-rng = np.random.default_rng()
+rng = np.random.default_rng(42)
 
 def hold_out_problem(matrix, user_index, holdout_ratio=0.2):
     user_row = matrix[user_index]
