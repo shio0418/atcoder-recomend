@@ -1,18 +1,22 @@
 package main
 
 import (
+	"atcoder-recomend/internal/cf"
 	"atcoder-recomend/internal/client"
+	"atcoder-recomend/internal/embedding"
 	"atcoder-recomend/internal/model"
 	"atcoder-recomend/internal/recommend"
 	"atcoder-recomend/internal/repository"
 	"context"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/pgvector/pgvector-go"
 )
 
 type recommendResponse struct {
@@ -85,6 +89,56 @@ func similarByTagHandler(conn repository.DBTX) echo.HandlerFunc {
 	}
 }
 
+func searchProblemHandler(conn repository.DBTX) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+		query := c.QueryParam("q")
+		if query == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "q is required"})
+		}
+		var difficultyMin, difficultyMax *int
+
+		if v := c.QueryParam("difficulty_min"); v != "" {
+			n, err := strconv.Atoi(v)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, map[string]string{"error": "difficulty_minは整数で指定してください"})
+			}
+			difficultyMin = &n
+		}
+		if v := c.QueryParam("difficulty_max"); v != "" {
+			n, err := strconv.Atoi(v)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, map[string]string{"error": "difficulty_maxは整数で指定してください"})
+			}
+			difficultyMax = &n
+		}
+
+		embedResp, err := embedding.EmbedBatch(ctx, map[string]string{"query": query})
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "クエリの埋め込みに失敗"})
+		}
+
+		queryVector := pgvector.NewVector(embedResp["query"].Values)
+
+		results, err := repository.SearchProblemsByEmbedding(ctx, conn, queryVector, difficultyMin, difficultyMax, 5)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "テキストによる検索に失敗"})
+		}
+		return c.JSON(http.StatusOK, results)
+	}
+}
+
+func cfRecommendHandler(conn repository.DBTX) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+		problemIDs, err := cf.Recommend(ctx, "uwaaaaaaa", 10)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "CF推薦取得失敗"})
+		}
+		return c.JSON(http.StatusOK, problemIDs)
+	}
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf(".env読み込み失敗: %v", err)
@@ -104,5 +158,7 @@ func main() {
 	e.GET("/api/recommend", recommendHandler(pool))
 	e.GET("/api/similar", similarHandler(pool))
 	e.GET("/api/similarByTag", similarByTagHandler(pool))
+	e.GET("/api/search", searchProblemHandler(pool))
+	e.GET("/api/cfRecommend", cfRecommendHandler(pool))
 	e.Logger.Fatal(e.Start(":8080"))
 }

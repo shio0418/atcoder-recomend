@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: embedding/v1/embedding.proto
 
-package embedpb
+package embedding
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -148,8 +148,8 @@ const file_embedding_v1_embedding_proto_rawDesc = "" +
 	"\x06values\x18\x02 \x03(\x02R\x06values\x12#\n" +
 	"\rmodel_version\x18\x03 \x01(\tR\fmodelVersion2X\n" +
 	"\x10EmbeddingService\x12D\n" +
-	"\x05Embed\x12\x1a.embedding.v1.EmbedRequest\x1a\x1b.embedding.v1.EmbedResponse(\x010\x01B\x96\x01\n" +
-	"\x10com.embedding.v1B\x0eEmbeddingProtoP\x01Z!atcoder-recomend/internal/embedpb\xa2\x02\x03EXX\xaa\x02\fEmbedding.V1\xca\x02\fEmbedding\\V1\xe2\x02\x18Embedding\\V1\\GPBMetadata\xea\x02\rEmbedding::V1b\x06proto3"
+	"\x05Embed\x12\x1a.embedding.v1.EmbedRequest\x1a\x1b.embedding.v1.EmbedResponse(\x010\x01B\x9b\x01\n" +
+	"\x10com.embedding.v1B\x0eEmbeddingProtoP\x01Z&atcoder-recomend/internal/pb/embedding\xa2\x02\x03EXX\xaa\x02\fEmbedding.V1\xca\x02\fEmbedding\\V1\xe2\x02\x18Embedding\\V1\\GPBMetadata\xea\x02\rEmbedding::V1b\x06proto3"
 
 var (
 	file_embedding_v1_embedding_proto_rawDescOnce sync.Once

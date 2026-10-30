@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package cf.v1;
+
+option go_package = "atcoder-recomend/internal/pb/cf";
+
+service CFService {
+    rpc Recommend(RecommendRequest) returns (RecommendResponse);
+}
+
+message RecommendRequest {
+    string user_handle = 1;
+    int32 k = 2;
+}
+
+message RecommendResponse {
+    repeated string problem_id = 1;
+    string model_version = 2;
+}

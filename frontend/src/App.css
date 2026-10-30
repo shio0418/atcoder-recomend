@@ -123,3 +123,45 @@ h2 {
 .error {
   color: #c00;
 }
+
+.section-note {
+  color: #666;
+  font-size: 0.85rem;
+  margin: -0.4rem 0 0.6rem;
+}
+
+.search-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.search-form input[type='text'] {
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-form input[type='number'] {
+  width: 7rem;
+}
+
+.search-form input,
+.search-form button {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.search-form button {
+  background: #06c;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.search-form button:disabled {
+  background: #99c2e6;
+  cursor: default;
+}

@@ -5,8 +5,8 @@ managed:
 
 plugins:
   - remote: buf.build/protocolbuffers/go
-    out: backend/internal/embedpb
+    out: backend/internal/pb
     opt: paths=source_relative
   - remote: buf.build/grpc/go
-    out: backend/internal/embedpb
+    out: backend/internal/pb
     opt: paths=source_relative

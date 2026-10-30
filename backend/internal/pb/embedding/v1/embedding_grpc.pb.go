@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: embedding/v1/embedding.proto
 
-package embedpb
+package embedding
 
 import (
 	context "context"
