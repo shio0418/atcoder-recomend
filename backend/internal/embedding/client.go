@@ -5,13 +5,18 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 func EmbedBatch(ctx context.Context, texts map[string]string) (map[string]*embedpb.EmbedResponse, error) {
-	conn, err := grpc.NewClient("localhost:5051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	addr := os.Getenv("EMBEDDING_SERVICE_ADDR")
+	if addr == "" {
+		addr = "localhost:5051" // ローカル開発時のデフォルト
+	}
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		return nil, fmt.Errorf("接続失敗: %w", err)
