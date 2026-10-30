@@ -20,7 +20,10 @@ class CFServicer(cf_pb2_grpc.CFServiceServicer):
         self.problem_tags =problem_tags
 
     def Recommend(self, request, context):
-        my_index = self.user_cat.categories.get_loc(request.user_handle)
+        try:
+            my_index = self.user_cat.categories.get_loc(request.user_handle)
+        except KeyError:
+            context.abort(grpc.StatusCode.NOT_FOUND, "user not found")
         similarities = compute_similarities(self.weighted_matrix, my_index)
         similar_indicies = select_similar_users(self.matrix, similarities, my_index)
         top, scores = recommend_problems(self.weighted_matrix, similarities, my_index, similar_indicies, request.k)
