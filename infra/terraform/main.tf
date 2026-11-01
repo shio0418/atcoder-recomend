@@ -28,6 +28,12 @@ data "vultr_os" "ubuntu" {
   }
 }
 
+resource "vultr_startup_script" "setup" {
+  name = "atcoder-recomend-setup"
+  script = filebase64("setup.sh")
+  type = "boot"
+}
+
 resource "vultr_instance" "app_server" {
   plan        = "vc2-2c-4gb" # ← ダッシュボードで実際のplan IDを確認して合わせる
   region      = "nrt"        # Tokyo
@@ -35,6 +41,7 @@ resource "vultr_instance" "app_server" {
   label       = "atcoder-recomend"
   hostname    = "atcoder-recomend"
   ssh_key_ids = [vultr_ssh_key.my_key.id]
+  script_id = vultr_startup_script.setup.id
 }
 
 output "instance_ip" {
