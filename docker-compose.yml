@@ -6,10 +6,50 @@ services:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_DB: "postgres"
-    ports:
-      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+
+  embedding-service:
+    build:
+      context: ./ml_service
+      dockerfile: Dockerfile.embedding
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres"
+    depends_on:
+      - db
+
+  cf-service:
+    build:
+      context: ./ml_service
+      dockerfile: Dockerfile.cf
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres"
+    depends_on:
+      - db
+
+  api:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL:  "postgres://postgres:postgres@db:5432/postgres"
+      EMBEDDING_SERVICE_ADDR: "embedding-service:5051"
+      CF_SERVICE_ADDR: "cf-service:50052"
+    depends_on:
+      - db
+      - embedding-service
+      - cf-service
+  
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 
 volumes:
   db_data:

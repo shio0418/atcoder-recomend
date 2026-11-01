@@ -140,9 +140,7 @@ func cfRecommendHandler(conn repository.DBTX) echo.HandlerFunc {
 }
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf(".env読み込み失敗: %v", err)
-	}
+	_ = godotenv.Load()
 	ctx := context.Background()
 	pool, err := repository.ConnectPool(ctx)
 	if err != nil {
