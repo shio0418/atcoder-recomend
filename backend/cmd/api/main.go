@@ -59,8 +59,11 @@ func recommendHandler(conn repository.DBTX) echo.HandlerFunc {
 		if difficultyWeight == 0 {
 			difficultyWeight = 1000
 		}
-
-		reviewCandidates := recommend.ReviewCandidates(solvedProblems, time.Now(), baseInterval, growthRate, difficultyWeight)
+		overdueCap, _ := strconv.ParseFloat(c.QueryParam("overdue_cap"), 64)
+		if overdueCap == 0 {
+			overdueCap = 90
+		}
+		reviewCandidates := recommend.ReviewCandidates(solvedProblems, time.Now(), baseInterval, growthRate, difficultyWeight, overdueCap)
 		newCandidates := recommend.NewCandidates(tagStats, rating, candidates)
 
 		return c.JSON(http.StatusOK, recommendResponse{

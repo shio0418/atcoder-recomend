@@ -2,6 +2,8 @@ package recommend
 
 import (
 	"atcoder-recomend/internal/model"
+	"cmp"
+	"math"
 	"slices"
 	"time"
 )
@@ -9,16 +11,19 @@ import (
 // TODO: 苦手に含める閾値は適当に決めたので後で調整してもいいかも
 const THRESHOLD = 0.5
 
-func ReviewCandidates(solved []model.SolvedProblem, now time.Time, baseInterval float64, growthRate float64, difficultyWeight float64) []model.SolvedProblem {
+func ReviewCandidates(solved []model.SolvedProblem, now time.Time, baseInterval float64, growthRate float64, difficultyWeight float64, overdueCap float64) []model.SolvedProblem {
 	var result []model.SolvedProblem
 	for _, problem := range solved {
 		interval := ForgettingCurveInterval(problem.ACCount, problem.WACount, problem.Difficulty, baseInterval, growthRate, difficultyWeight)
 		dueAt := problem.LastACAt.AddDate(0, 0, interval)
 		if now.After(dueAt) {
-			problem.DaysOverdue = now.Sub(dueAt).Hours() / 24
+			problem.DaysOverdue = now.Sub(dueAt).Hours()/24
 			result = append(result, problem)
 		}
 	}
+	slices.SortFunc(result, func(a, b model.SolvedProblem) int {
+		return cmp.Compare(math.Min(b.DaysOverdue, overdueCap), math.Min(a.DaysOverdue, overdueCap))
+	})
 	return result
 }
 

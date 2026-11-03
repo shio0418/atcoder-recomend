@@ -12,7 +12,8 @@ export function ReviewList({ problems }: Props) {
   const filtered =
     threshold === null ? problems : problems.filter((p) => p.daysOverdue <= threshold)
 
-  const sorted = [...filtered].sort((a, b) => b.daysOverdue - a.daysOverdue).slice(0, 5)
+  // 並び順(優先度の上限を加味したもの)はバックエンドが既に決めてるので、ここでは並べ替えない
+  const sorted = filtered.slice(0, 5)
 
   return (
     <div>

@@ -39,7 +39,7 @@ function App() {
 
   return (
     <main>
-      <h1>AtCoder精進コーチ</h1>
+      <h1>AtCoder問題推薦</h1>
 
       <section>
         <h2>復習候補</h2>

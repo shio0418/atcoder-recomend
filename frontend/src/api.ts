@@ -26,6 +26,7 @@ export type ReviewParams = {
   baseInterval?: number
   growthRate?: number
   difficultyWeight?: number
+  overdueCap?: number
 }
 
 export async function fetchRecommendations(
@@ -40,6 +41,9 @@ export async function fetchRecommendations(
   }
   if (params.difficultyWeight !== undefined) {
     query.set('difficulty_weight', String(params.difficultyWeight))
+  }
+  if (params.overdueCap !== undefined) {
+    query.set('overdue_cap', String(params.overdueCap))
   }
   const qs = query.toString()
   const res = await fetch(`${API_BASE_URL}/api/recommend${qs ? `?${qs}` : ''}`)

@@ -10,6 +10,7 @@ export function ReviewSettings({ onApply, loading }: Props) {
   const [baseInterval, setBaseInterval] = useState('5')
   const [growthRate, setGrowthRate] = useState('2')
   const [difficultyWeight, setDifficultyWeight] = useState('1000')
+  const [overdueCap, setOverdueCap] = useState('90')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,6 +18,7 @@ export function ReviewSettings({ onApply, loading }: Props) {
       baseInterval: Number(baseInterval),
       growthRate: Number(growthRate),
       difficultyWeight: Number(difficultyWeight),
+      overdueCap: Number(overdueCap),
     })
   }
 
@@ -26,6 +28,7 @@ export function ReviewSettings({ onApply, loading }: Props) {
         復習間隔(日) = {baseInterval || 'a'} × {growthRate || 'b'}
         <sup>(AC回数-1)</sup> ÷ (1+WA回数) ÷ (1 + 難易度 ÷ {difficultyWeight || 'c'})
       </p>
+      <p className="formula">優先度の上限: {overdueCap || 'd'}日超過以上は同じ最優先ランク扱い</p>
       <div className="review-settings-inputs">
         <label>
           基準日数 (a)
@@ -50,6 +53,14 @@ export function ReviewSettings({ onApply, loading }: Props) {
             type="number"
             value={difficultyWeight}
             onChange={(e) => setDifficultyWeight(e.target.value)}
+          />
+        </label>
+        <label>
+          優先度の上限日数 (d)
+          <input
+            type="number"
+            value={overdueCap}
+            onChange={(e) => setOverdueCap(e.target.value)}
           />
         </label>
         <button type="submit" disabled={loading}>
