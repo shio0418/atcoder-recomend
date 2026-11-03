@@ -1,0 +1,52 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  embedding-service:
+    image: shio041840/atcoder-embedding:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres"
+    depends_on:
+      - db
+
+  cf-service:
+    image: shio041840/atcoder-cf:latest  
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres"
+    depends_on:
+      - db
+
+  api:
+    image: shio041840/atcoder-api:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL:  "postgres://postgres:postgres@db:5432/postgres"
+      EMBEDDING_SERVICE_ADDR: "embedding-service:5051"
+      CF_SERVICE_ADDR: "cf-service:50052"
+    depends_on:
+      - db
+      - embedding-service
+      - cf-service
+  
+  frontend:
+    image: shio041840/atcoder-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /home/deploy/certs:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+
+volumes:
+  db_data:

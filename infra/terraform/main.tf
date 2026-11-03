@@ -4,6 +4,10 @@ terraform {
       source  = "vultr/vultr"
       version = "~> 2.19"
     }
+    cloudflare = {
+        source = "cloudflare/cloudflare"
+        version = "~> 5.0"
+    }
   }
 }
 
@@ -46,4 +50,28 @@ resource "vultr_instance" "app_server" {
 
 output "instance_ip" {
   value = vultr_instance.app_server.main_ip
+}
+
+variable "cloudflare_api_token" {
+  type      = string
+  sensitive = true
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}
+
+data "cloudflare_zone" "this" {
+  filter = {
+    name = "shio0418.dev"
+  }
+}
+
+resource "cloudflare_dns_record" "app" {
+  zone_id = data.cloudflare_zone.this.id
+  name = "atcoder-recommend"
+  type = "A"
+  ttl = 1
+  content = vultr_instance.app_server.main_ip
+  proxied = true
 }
