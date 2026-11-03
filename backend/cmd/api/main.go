@@ -126,7 +126,7 @@ func searchProblemHandler(conn repository.DBTX) echo.HandlerFunc {
 			difficultyMax = &n
 		}
 
-		embedResp, err := embedding.EmbedBatch(ctx, map[string]string{"query": query})
+		embedResp, err := embedding.EmbedBatch(ctx, map[string]string{"query": "query " + query})
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "クエリの埋め込みに失敗"})
 		}

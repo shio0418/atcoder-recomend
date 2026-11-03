@@ -29,7 +29,7 @@ func main() {
 
 	texts := make(map[string]string)
 	for _, p := range toEmbed {
-		texts[p.ProblemID] = *p.Statement
+		texts[p.ProblemID] = "passage: " + *p.Statement
 	}
 
 	start := time.Now()

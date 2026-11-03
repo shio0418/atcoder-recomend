@@ -15,6 +15,7 @@ func ReviewCandidates(solved []model.SolvedProblem, now time.Time, baseInterval 
 		interval := ForgettingCurveInterval(problem.ACCount, problem.WACount, problem.Difficulty, baseInterval, growthRate, difficultyWeight)
 		dueAt := problem.LastACAt.AddDate(0, 0, interval)
 		if now.After(dueAt) {
+			problem.DaysOverdue = now.Sub(dueAt).Hours() / 24
 			result = append(result, problem)
 		}
 	}
