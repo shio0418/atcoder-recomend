@@ -33,7 +33,7 @@ func ListUntaggedProblems(ctx context.Context, conn DBTX, limit int) ([]model.Pr
 func ListUnembeddedProblems(ctx context.Context, conn DBTX, limit int) ([]model.Problem, error) {
 	rows, err := conn.Query(ctx,
 		`SELECT problem_id, title, difficulty, contest_id, statement, editorial_text, has_editorial
-		FROM problems WHERE embedding IS NULL AND statement IS NOT NULL LIMIT $1`,
+		FROM problems WHERE embedding IS NULL AND statement IS NOT NULL AND trim(statement) != '' LIMIT $1`,
 		limit,
 	)
 	if err != nil {
@@ -131,6 +131,7 @@ func SearchProblemsByEmbedding(ctx context.Context, conn DBTX, queryVector pgvec
 		`SELECT problems.problem_id, problems.title, problems.difficulty, problems.tags, problems.contest_id
 		FROM problems
 		WHERE embedding IS NOT NULL
+		AND trim(statement) != ''
 		AND ($2::int IS NULL OR difficulty >= $2)
 		AND ($3::int IS NULL OR difficulty <= $3)
 		ORDER BY embedding <=> $1

@@ -47,7 +47,20 @@ func recommendHandler(conn repository.DBTX) echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "candidates取得失敗: " + err.Error()})
 		}
 
-		reviewCandidates := recommend.ReviewCandidates(solvedProblems, time.Now())
+		baseInterval, _ := strconv.ParseFloat(c.QueryParam("base_interval"), 64)
+		if baseInterval == 0 {
+			baseInterval = 5
+		}
+		growthRate, _ := strconv.ParseFloat(c.QueryParam("growth_rate"), 64)
+		if growthRate == 0 {
+			growthRate = 2
+		}
+		difficultyWeight, _ := strconv.ParseFloat(c.QueryParam("difficulty_weight"), 64)
+		if difficultyWeight == 0 {
+			difficultyWeight = 1000
+		}
+
+		reviewCandidates := recommend.ReviewCandidates(solvedProblems, time.Now(), baseInterval, growthRate, difficultyWeight)
 		newCandidates := recommend.NewCandidates(tagStats, rating, candidates)
 
 		return c.JSON(http.StatusOK, recommendResponse{

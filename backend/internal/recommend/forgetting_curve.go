@@ -4,7 +4,11 @@ import (
 	"math"
 )
 
-func ForgettingCurveInterval(acCount int, waCount int) int {
-	// TODO: d_i := 5 * 2^(i-1) - f(p, i) のfの項も実装してみる
-	return 5 * int(math.Pow(2.0, max(float64(acCount)-1, 0))) / (1 + waCount)
+func ForgettingCurveInterval(acCount int, waCount int, difficulty *int, baseInterval float64, growthRate float64, difficultyWeight float64) int {
+	growth := baseInterval * math.Pow(growthRate, max(float64(acCount)-1, 0))
+	difficultyFactor := 1.0
+	if difficulty != nil {
+		difficultyFactor = 1 + float64(*difficulty)/difficultyWeight
+	}
+	return int(growth / (1 + float64(waCount)) / difficultyFactor)
 }
