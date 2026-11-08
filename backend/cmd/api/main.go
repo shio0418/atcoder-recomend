@@ -47,7 +47,23 @@ func recommendHandler(conn repository.DBTX) echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "candidates取得失敗: " + err.Error()})
 		}
 
-		reviewCandidates := recommend.ReviewCandidates(solvedProblems, time.Now())
+		baseInterval, _ := strconv.ParseFloat(c.QueryParam("base_interval"), 64)
+		if baseInterval == 0 {
+			baseInterval = 5
+		}
+		growthRate, _ := strconv.ParseFloat(c.QueryParam("growth_rate"), 64)
+		if growthRate == 0 {
+			growthRate = 2
+		}
+		difficultyWeight, _ := strconv.ParseFloat(c.QueryParam("difficulty_weight"), 64)
+		if difficultyWeight == 0 {
+			difficultyWeight = 1000
+		}
+		overdueCap, _ := strconv.ParseFloat(c.QueryParam("overdue_cap"), 64)
+		if overdueCap == 0 {
+			overdueCap = 90
+		}
+		reviewCandidates := recommend.ReviewCandidates(solvedProblems, time.Now(), baseInterval, growthRate, difficultyWeight, overdueCap)
 		newCandidates := recommend.NewCandidates(tagStats, rating, candidates)
 
 		return c.JSON(http.StatusOK, recommendResponse{
@@ -113,7 +129,7 @@ func searchProblemHandler(conn repository.DBTX) echo.HandlerFunc {
 			difficultyMax = &n
 		}
 
-		embedResp, err := embedding.EmbedBatch(ctx, map[string]string{"query": query})
+		embedResp, err := embedding.EmbedBatch(ctx, map[string]string{"query": "query " + query})
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "クエリの埋め込みに失敗"})
 		}
@@ -140,9 +156,7 @@ func cfRecommendHandler(conn repository.DBTX) echo.HandlerFunc {
 }
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf(".env読み込み失敗: %v", err)
-	}
+	_ = godotenv.Load()
 	ctx := context.Background()
 	pool, err := repository.ConnectPool(ctx)
 	if err != nil {

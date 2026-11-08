@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { fetchRecommendations, type RecommendResponse } from './api'
+import { fetchRecommendations, type RecommendResponse, type ReviewParams } from './api'
 import { ReviewList } from './ReviewList'
+import { ReviewSettings } from './ReviewSettings'
 import { NewCandidateList } from './NewCandidateList'
 import { SearchSection } from './SearchSection'
 import { CFRecommendations } from './CFRecommendations'
@@ -9,27 +10,41 @@ import './App.css'
 function App() {
   const [data, setData] = useState<RecommendResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchRecommendations()
+  const loadRecommendations = (params: ReviewParams = {}) => {
+    setLoading(true)
+    setError(null)
+    fetchRecommendations(params)
       .then(setData)
       .catch((e: Error) => setError(e.message))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadRecommendations()
   }, [])
 
-  if (error) {
+  if (!data && loading) {
+    return <p>読み込み中...</p>
+  }
+
+  if (!data && error) {
     return <p className="error">エラー: {error}</p>
   }
 
   if (!data) {
-    return <p>読み込み中...</p>
+    return null
   }
 
   return (
     <main>
-      <h1>AtCoder精進コーチ</h1>
+      <h1>AtCoder問題推薦</h1>
 
       <section>
         <h2>復習候補</h2>
+        <ReviewSettings onApply={loadRecommendations} loading={loading} />
+        {error && <p className="error">エラー: {error}</p>}
         <ReviewList problems={data.review} />
       </section>
 

@@ -29,7 +29,7 @@ func TestReviewCandidates(t *testing.T) {
 		},
 	}
 
-	got := ReviewCandidates(solved, now)
+	got := ReviewCandidates(solved, now, 5, 2, 1000, 90)
 
 	if len(got) != 1 {
 		t.Fatalf("len(got) = %d, want 1 (got: %+v)", len(got), got)

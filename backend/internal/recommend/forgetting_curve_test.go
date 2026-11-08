@@ -20,7 +20,7 @@ func TestForgettingCurveInterval(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ForgettingCurveInterval(tt.acCount, tt.waCount)
+			got := ForgettingCurveInterval(tt.acCount, tt.waCount, nil, 5, 2, 1000)
 			if got != tt.want {
 				t.Errorf("ForgettingCurveInterval(%d, %d) = %d, want %d", tt.acCount, tt.waCount, got, tt.want)
 			}

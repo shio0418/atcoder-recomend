@@ -43,7 +43,7 @@ func main() {
 		log.Fatalf("candidates取得失敗: %v", err)
 	}
 
-	reviewCandidates := recommend.ReviewCandidates(solvedProblems, time.Now())
+	reviewCandidates := recommend.ReviewCandidates(solvedProblems, time.Now(), 5, 2, 1000, 90)
 	newCandidates := recommend.NewCandidates(tagStats, rating, candidates)
 
 	for _, reviewCandidate := range reviewCandidates {

@@ -2,6 +2,7 @@ export type SolvedProblem = {
   problemId: string
   acCount: number
   lastAcAt: string
+  daysOverdue: number
 }
 
 export type Problem = {
@@ -19,10 +20,33 @@ export type RecommendResponse = {
   new: Problem[]
 }
 
-const API_BASE_URL = 'http://localhost:8080'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
-export async function fetchRecommendations(): Promise<RecommendResponse> {
-  const res = await fetch(`${API_BASE_URL}/api/recommend`)
+export type ReviewParams = {
+  baseInterval?: number
+  growthRate?: number
+  difficultyWeight?: number
+  overdueCap?: number
+}
+
+export async function fetchRecommendations(
+  params: ReviewParams = {},
+): Promise<RecommendResponse> {
+  const query = new URLSearchParams()
+  if (params.baseInterval !== undefined) {
+    query.set('base_interval', String(params.baseInterval))
+  }
+  if (params.growthRate !== undefined) {
+    query.set('growth_rate', String(params.growthRate))
+  }
+  if (params.difficultyWeight !== undefined) {
+    query.set('difficulty_weight', String(params.difficultyWeight))
+  }
+  if (params.overdueCap !== undefined) {
+    query.set('overdue_cap', String(params.overdueCap))
+  }
+  const qs = query.toString()
+  const res = await fetch(`${API_BASE_URL}/api/recommend${qs ? `?${qs}` : ''}`)
   if (!res.ok) {
     throw new Error(`レコメンド取得に失敗しました (status: ${res.status})`)
   }
