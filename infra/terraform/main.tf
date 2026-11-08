@@ -22,7 +22,7 @@ provider "vultr" {
 
 resource "vultr_ssh_key" "my_key" {
   name    = "my-laptop"
-  ssh_key = file("~/.ssh/id_ed25519.pub") # 自分の公開鍵のパスに合わせる
+  ssh_key = file(pathexpand("~/.ssh/id_ed25519.pub")) # 自分の公開鍵のパスに合わせる
 }
 
 data "vultr_os" "ubuntu" {
