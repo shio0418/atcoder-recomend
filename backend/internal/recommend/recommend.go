@@ -22,7 +22,18 @@ func ReviewCandidates(solved []model.SolvedProblem, now time.Time, baseInterval 
 		}
 	}
 	slices.SortFunc(result, func(a, b model.SolvedProblem) int {
-		return cmp.Compare(math.Min(b.DaysOverdue, overdueCap), math.Min(a.DaysOverdue, overdueCap))
+		capped := cmp.Compare(math.Min(b.DaysOverdue, overdueCap), math.Min(a.DaysOverdue, overdueCap))
+		if capped != 0 {
+			return capped
+		}
+		aDiff, bDiff := 0, 0
+		if a.Difficulty != nil {
+			aDiff = *a.Difficulty
+		}
+		if b.Difficulty != nil {
+			bDiff = *b.Difficulty
+		}
+		return cmp.Compare(bDiff, aDiff)
 	})
 	return result
 }
