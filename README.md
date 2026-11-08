@@ -39,7 +39,7 @@ atcoder_recomend/
 - **ML・データ処理**: Python / gRPC / sentence-transformers（multilingual-e5-small）/ scikit-learn / pandas / MLflow / Gemini API（google-genai）
 - **フロントエンド**: React / TypeScript / Vite
 - **データベース**: PostgreSQL + pgvector
-- **インフラ**: Docker / Docker Compose / Terraform / Vultr（VPS）/ Cloudflare（DNS・CDN・TLS）
+- **インフラ**: Docker / Docker Compose / Terraform / Vultr（VPS）/ Cloudflare（DNS・TLS）
 
 ## 技術的判断など
 - 忘却曲線は、[kenkooooさん](https://github.com/kenkoooo/AtCoderProblems/issues/532)の数式を参考に自分で調整できるようにしました
