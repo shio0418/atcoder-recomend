@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { SolvedProblem } from './api'
+import { FeedbackButtons } from './FeedbackButtons'
 
 type Props = {
   problems: SolvedProblem[]
@@ -43,6 +44,7 @@ export function ReviewList({ problems }: Props) {
               <span>AC回数: {p.acCount}</span>
               <span>最終AC: {new Date(p.lastAcAt).toLocaleDateString()}</span>
               <span>{Math.floor(p.daysOverdue)}日超過</span>
+              <FeedbackButtons problemId={p.problemId} source="review" />
             </li>
           ))}
         </ul>

@@ -1,6 +1,7 @@
 import type { Problem } from './api'
 import { difficultyColor } from './difficultyColor'
 import { SimilarProblems } from './SimilarProblems'
+import { FeedbackButtons } from './FeedbackButtons'
 
 type Props = {
   problems: Problem[]
@@ -38,6 +39,7 @@ export function NewCandidateList({ problems }: Props) {
                 </span>
               ))}
             </span>
+            <FeedbackButtons problemId={p.problemId} source="new" />
           </div>
           <SimilarProblems problemId={p.problemId} />
         </li>

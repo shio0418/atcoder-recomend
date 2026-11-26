@@ -5,6 +5,25 @@ main {
   font-family: system-ui, sans-serif;
 }
 
+.feedback-buttons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.feedback-buttons button {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.feedback-sent {
+  font-size: 0.8rem;
+  color: #666;
+}
+
 h1 {
   font-size: 1.5rem;
 }

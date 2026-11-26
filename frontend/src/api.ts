@@ -104,3 +104,21 @@ export async function fetchCFRecommendations(): Promise<string[]> {
   }
   return res.json()
 }
+
+export type FeedbackSource = 'review' | 'new' | 'cf' | 'search'
+export type Feedback = 'solved' | 'needed_help'
+
+export async function sendFeedback(
+  problemId: string,
+  source: FeedbackSource,
+  feedback: Feedback,
+): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/feedback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ problemId, source, feedback }),
+  })
+  if (!res.ok) {
+    throw new Error(`フィードバック送信に失敗しました (status: ${res.status})`)
+  }
+}

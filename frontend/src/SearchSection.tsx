@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { searchProblems, type Problem } from './api'
 import { difficultyColor } from './difficultyColor'
+import { FeedbackButtons } from './FeedbackButtons'
 
 export function SearchSection() {
   const [query, setQuery] = useState('')
@@ -79,6 +80,7 @@ export function SearchSection() {
                   </span>
                 ))}
               </span>
+              <FeedbackButtons problemId={p.problemId} source="search" />
             </li>
           ))}
         </ul>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchCFRecommendations } from './api'
+import { FeedbackButtons } from './FeedbackButtons'
 
 export function CFRecommendations() {
   const [problemIds, setProblemIds] = useState<string[] | null>(null)
@@ -31,6 +32,7 @@ export function CFRecommendations() {
               >
                 {problemId}
               </a>
+              <FeedbackButtons problemId={problemId} source="cf" />
             </li>
           ))}
         </ul>
