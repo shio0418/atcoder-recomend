@@ -155,6 +155,24 @@ func cfRecommendHandler(conn repository.DBTX) echo.HandlerFunc {
 	}
 }
 
+func feedbackHandler(conn repository.DBTX) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+		var req struct {
+			ProblemID string `json:"problemId"`
+			Source    string `json:"source"`
+			Feedback  string `json:"feedback"`
+		}
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "リクエストが不正です"})
+		}
+		if err := repository.InsertRecommendationFeedback(ctx, conn, req.ProblemID, req.Source, req.Feedback); err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "フィードバック記録失敗: " + err.Error()})
+		}
+		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+	}
+}
+
 func main() {
 	_ = godotenv.Load()
 	ctx := context.Background()
@@ -174,5 +192,6 @@ func main() {
 	e.GET("/api/similarByTag", similarByTagHandler(pool))
 	e.GET("/api/search", searchProblemHandler(pool))
 	e.GET("/api/cfRecommend", cfRecommendHandler(pool))
+	e.POST("/api/feedback", feedbackHandler(pool))
 	e.Logger.Fatal(e.Start(":8080"))
 }
