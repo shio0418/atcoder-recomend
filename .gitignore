@@ -2,5 +2,5 @@
 .terraform/
 terraform.tfstate*
 terraform.tfvars
-*.sql
+dump.sql
 .env
