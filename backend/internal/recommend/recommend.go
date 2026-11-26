@@ -42,9 +42,10 @@ func NewCandidates(tagStats []model.TagStat, rating int, candidates []model.Prob
 	min, max := DifficultyBand(rating)
 	var result []model.Problem
 	weakTagSet := make(map[string]bool)
-	for _, ts := range tagStats {
-		if float64(ts.ACCount)/float64(ts.Attempts) < THRESHOLD {
-			weakTagSet[ts.Tag] = true
+	mastery := MasteryScores(tagStats)
+	for tag, score := range mastery {
+		if score < THRESHOLD {
+			weakTagSet[tag] = true
 		}
 	}
 
