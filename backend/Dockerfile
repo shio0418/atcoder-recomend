@@ -6,10 +6,11 @@ RUN go mod download
 
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -o migrate ./cmd/migrate
 
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
-COPY --from=builder /app/api .
+COPY --from=builder /app/api /app/migrate ./
 EXPOSE 8080
 CMD ["./api"]
