@@ -1,0 +1,39 @@
+name: Build and Push Images
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: atcoder-api
+            context: ./backend
+            dockerfile: ./backend/Dockerfile
+          - name: atcoder-frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+          - name: atcoder-embedding
+            context: ./ml_service
+            dockerfile: ./ml_service/Dockerfile.embedding
+          - name: atcoder-cf
+            context: ./ml_service
+            dockerfile: ./ml_service/Dockerfile.cf
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.name }}:latest
